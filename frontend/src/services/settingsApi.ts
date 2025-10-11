@@ -103,6 +103,7 @@ function mapToSettings(response: SettingsResponse): Settings {
     theme: response.theme as 'light' | 'dark' | 'system',
     enableNotifications: response.enableNotifications,
     autoShowAgentPanel: response.autoShowAgentPanel,
+    agentMode: (response as any).agentMode || 'quorum', // Default to quorum mode
     logLevel: response.logLevel as 'debug' | 'info' | 'warn' | 'error',
   };
 }

@@ -36,6 +36,7 @@ function App() {
   const isProcessing = useStore((state) => state.isProcessing);
   const error = useStore((state) => state.error);
   const autoShowAgentPanel = useStore((state) => state.settings.autoShowAgentPanel);
+  const agentMode = useStore((state) => state.settings.agentMode);
   const conversationId = useStore((state) => state.conversationId);
   
   // === ACTIONS (direct access - stable references) ===
@@ -95,11 +96,20 @@ function App() {
       setProcessing(true);
 
       // Send task via WebSocket (responses come through the WebSocket hook)
+      // enableCollaboration is controlled by agentMode: 'quorum' = true, 'solo' = false
+      const enableCollaboration = agentMode === 'quorum';
+      
       const taskRequest = {
         message,
-        enableCollaboration: true,
+        enableCollaboration,
         maxSubAgents: 3,
       };
+
+      logger.info('Task request prepared', { 
+        agentMode, 
+        enableCollaboration,
+        maxSubAgents: taskRequest.maxSubAgents 
+      });
 
       sendTask(taskRequest);
 

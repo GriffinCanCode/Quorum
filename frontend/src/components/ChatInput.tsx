@@ -5,6 +5,7 @@
 import React, { useState, useRef, KeyboardEvent } from 'react';
 import { Send, Square } from 'lucide-react';
 import { useLogger } from '@/hooks/useLogger';
+import { ModeSelector } from './ModeSelector';
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -67,7 +68,11 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   return (
-    <div className="flex gap-2 items-end">
+    <div className="flex gap-3 items-end">
+      {/* Mode Selector on the left */}
+      <ModeSelector />
+      
+      {/* Message Input */}
       <textarea
         ref={textareaRef}
         value={input}
@@ -78,6 +83,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         rows={1}
         className="input-field-clean resize-none min-h-[52px] max-h-[160px] transition-all duration-200"
       />
+      
+      {/* Send/Stop Button */}
       {isGenerating ? (
         <button
           onClick={handleStop}

@@ -121,6 +121,7 @@ export interface Settings {
   theme: 'light' | 'dark' | 'system';
   enableNotifications: boolean;
   autoShowAgentPanel: boolean;
+  agentMode: 'solo' | 'quorum'; // Solo = single agent, Quorum = multi-agent collaboration
   logLevel: 'debug' | 'info' | 'warn' | 'error';
 }
 

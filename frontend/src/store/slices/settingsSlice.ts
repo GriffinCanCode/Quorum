@@ -25,6 +25,7 @@ export interface Settings {
   theme: 'light' | 'dark' | 'system';
   enableNotifications: boolean;
   autoShowAgentPanel: boolean;
+  agentMode: 'solo' | 'quorum'; // Solo = single agent, Quorum = multi-agent collaboration
   
   // Logging
   logLevel: 'debug' | 'info' | 'warn' | 'error';
@@ -63,6 +64,7 @@ export const defaultSettings: Settings = {
   theme: 'system',
   enableNotifications: true,
   autoShowAgentPanel: true,
+  agentMode: 'quorum', // Default to multi-agent collaboration
   
   // Logging
   logLevel: 'info',
