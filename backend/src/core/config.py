@@ -39,12 +39,12 @@ class Settings(BaseSettings):
     log_file: str = ""
     
     # Database Configuration
-    database_url: str = "postgresql://nooversight:nooversight@localhost:5432/nooversight"
+    database_url: str = "postgresql://quorum:quorum@localhost:5432/quorum"
     database_host: str = "localhost"
     database_port: int = 5432
-    database_name: str = "nooversight"
-    database_user: str = "nooversight"
-    database_password: str = "nooversight"
+    database_name: str = "quorum"
+    database_user: str = "quorum"
+    database_password: str = "quorum"
     database_pool_size: int = 10
     database_max_overflow: int = 20
     

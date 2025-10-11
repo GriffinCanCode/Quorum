@@ -11,10 +11,10 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Database configuration
-CONTAINER_NAME="nooversight-postgres"
-DB_NAME="nooversight"
-DB_USER="nooversight"
-DB_PASSWORD="nooversight"
+CONTAINER_NAME="quorum-postgres"
+DB_NAME="quorum"
+DB_USER="quorum"
+DB_PASSWORD="quorum"
 DB_PORT="5432"
 
 echo -e "${BLUE}Setting up PostgreSQL with pgvector...${NC}"
@@ -99,7 +99,7 @@ setup_docker_postgres() {
             -e POSTGRES_USER=${DB_USER} \
             -e POSTGRES_PASSWORD=${DB_PASSWORD} \
             -p ${DB_PORT}:5432 \
-            -v nooversight-pgdata:/var/lib/postgresql/data \
+            -v quorum-pgdata:/var/lib/postgresql/data \
             pgvector/pgvector:pg16
         
         echo "Waiting for PostgreSQL to be ready..."
@@ -119,7 +119,7 @@ setup_docker_postgres() {
     echo -e "\n${BLUE}Docker container management:${NC}"
     echo "  Stop:   docker stop ${CONTAINER_NAME}"
     echo "  Remove: docker rm -f ${CONTAINER_NAME}"
-    echo "  Volume: docker volume rm nooversight-pgdata"
+    echo "  Volume: docker volume rm quorum-pgdata"
 }
 
 # Check if local PostgreSQL is available

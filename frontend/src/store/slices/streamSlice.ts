@@ -71,10 +71,31 @@ export const createStreamSlice: StateCreator<
 
       case 'agent_status':
         if (event.agentId && event.status) {
+          // Don't update agent status if streaming has already ended
+          // This prevents late-arriving status events from reverting completed agents
+          if (!state.isStreaming && (event.status === 'thinking' || event.status === 'responding')) {
+            logger.debug('Ignoring late agent_status event - stream already ended', {
+              agentId: event.agentId,
+              status: event.status,
+            });
+            break;
+          }
+          
           // Check if agent exists, if not create it
           const agent = state.agents.byId[event.agentId];
           
           if (agent) {
+            // Don't update if agent is already complete/error and new status is active
+            if ((agent.status === 'complete' || agent.status === 'error') && 
+                (event.status === 'thinking' || event.status === 'responding')) {
+              logger.debug('Ignoring agent_status - agent already finished', {
+                agentId: event.agentId,
+                currentStatus: agent.status,
+                newStatus: event.status,
+              });
+              break;
+            }
+            
             state.updateAgent(event.agentId, {
               status: event.status,
               currentMessage: event.message,
@@ -153,23 +174,30 @@ export const createStreamSlice: StateCreator<
         logger.info('Stream completed', {
           agentId: event.agentId,
           messageCount: state.messages.allIds.length,
+          finalResponse: event.finalResponse?.length,
         });
 
-        state.setProcessing(false);
+        // Set streaming states to false first
         set({ 
           isStreaming: false,
           streamingMessageId: null,
         });
+        
+        // Then set processing to false (important: do this after streaming state is cleared)
+        state.setProcessing(false);
 
-        // Mark primary agent as complete
-        if (event.agentId && state.agents.byId[event.agentId]) {
-          state.updateAgent(event.agentId, {
-            status: 'complete',
-            progress: 100,
-          });
-        }
+        // Mark all agents as complete (not just the primary agent)
+        state.agents.allIds.forEach(agentId => {
+          const agent = state.agents.byId[agentId];
+          if (agent && agent.status !== 'complete' && agent.status !== 'error') {
+            state.updateAgent(agentId, {
+              status: 'complete',
+              progress: 100,
+            });
+          }
+        });
 
-        // Save conversation to history
+        // Save conversation to history (after all agents are marked complete)
         logger.info('Saving conversation to history');
         state.saveCurrentConversation();
         break;
@@ -177,10 +205,25 @@ export const createStreamSlice: StateCreator<
       case 'stream_end':
         // Backend confirmation that stream is ending
         logger.info('Stream end signal received');
-        state.setProcessing(false);
+        
+        // Set streaming states to false first
         set({ 
           isStreaming: false,
           streamingMessageId: null,
+        });
+        
+        // Then set processing to false
+        state.setProcessing(false);
+
+        // Mark all active agents as complete
+        state.agents.allIds.forEach(agentId => {
+          const agent = state.agents.byId[agentId];
+          if (agent && agent.status !== 'complete' && agent.status !== 'error') {
+            state.updateAgent(agentId, {
+              status: 'complete',
+              progress: 100,
+            });
+          }
         });
 
         // Save conversation to history
@@ -226,9 +269,27 @@ export const createStreamSlice: StateCreator<
       case 'agent_thinking':
         // Agent is thinking in a conversation round
         if (event.agentId) {
+          // Don't update if streaming has already ended
+          if (!state.isStreaming) {
+            logger.debug('Ignoring late agent_thinking event - stream already ended', {
+              agentId: event.agentId,
+              roundNumber: event.roundNumber,
+            });
+            break;
+          }
+          
           const agent = state.agents.byId[event.agentId];
           
           if (agent) {
+            // Don't update if agent is already complete or error
+            if (agent.status === 'complete' || agent.status === 'error') {
+              logger.debug('Ignoring agent_thinking - agent already finished', {
+                agentId: event.agentId,
+                currentStatus: agent.status,
+              });
+              break;
+            }
+            
             state.updateAgent(event.agentId, {
               status: 'thinking',
               currentMessage: `Round ${event.roundNumber || 1}`,
@@ -259,6 +320,15 @@ export const createStreamSlice: StateCreator<
       case 'agent_message_chunk':
         // Real-time streaming chunk from agent conversation
         if (event.messageId && event.agentId && event.content) {
+          // Don't process if streaming has already ended
+          if (!state.isStreaming) {
+            logger.debug('Ignoring late agent_message_chunk - stream already ended', {
+              agentId: event.agentId,
+              messageId: event.messageId,
+            });
+            break;
+          }
+          
           // Ensure agent exists
           if (!state.agents.byId[event.agentId] && event.agentType) {
             state.addAgent({
@@ -275,8 +345,9 @@ export const createStreamSlice: StateCreator<
             });
           }
 
-          // Update agent status to responding
-          if (state.agents.byId[event.agentId]) {
+          // Update agent status to responding only if not already complete
+          const agent = state.agents.byId[event.agentId];
+          if (agent && agent.status !== 'complete' && agent.status !== 'error') {
             state.updateAgent(event.agentId, {
               status: 'responding',
               currentMessage: `Round ${event.roundNumber || 1}`,

@@ -68,6 +68,6 @@ echo "   cd frontend && npm run dev"
 echo ""
 echo "🌐 Frontend: http://localhost:5173"
 echo "🔧 Backend:  http://localhost:8000"
-echo "🗄️  Database: postgresql://nooversight:nooversight@localhost:5432/nooversight"
+echo "🗄️  Database: postgresql://quorum:quorum@localhost:5432/quorum"
 echo ""
 

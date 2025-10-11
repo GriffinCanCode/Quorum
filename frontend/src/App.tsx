@@ -3,7 +3,7 @@
  * Manages streaming communication with the backend via WebSocket.
  */
 import { useEffect, useState } from 'react';
-import { RotateCcw, AlertCircle, Wifi, WifiOff, Settings as SettingsIcon, History } from 'lucide-react';
+import { RotateCcw, AlertCircle, Wifi, WifiOff, Settings as SettingsIcon } from 'lucide-react';
 import { useStore } from '@/store';
 import { selectMessages, selectAgents } from '@/store/selectors';
 import { APIService } from '@/services/api';
@@ -21,9 +21,6 @@ function App() {
   
   // Local state for settings modal
   const [showSettings, setShowSettings] = useState(false);
-  
-  // History sidebar state
-  const setShowHistory = useStore((state) => state.setShowHistory);
   
   // WebSocket connection
   const { isConnected, error: wsError, sendTask, stopGeneration } = useWebSocket({ autoConnect: true });
@@ -146,8 +143,8 @@ function App() {
       <div className="h-screen flex flex-col overflow-hidden">
         {/* Header */}
         <header className="header-clean flex-shrink-0">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <Logo size="md" showTagline={true} />
+          <div className="w-full flex items-center justify-between">
+            <Logo size="md" showTagline={false} />
 
             <div className="flex items-center gap-2.5">
               {/* WebSocket Status Indicator */}
@@ -171,30 +168,10 @@ function App() {
               
               <button
                 onClick={() => {
-                  logger.debug('Opening history');
-                  setShowHistory(true);
-                }}
-                className="btn-minimal flex items-center gap-2"
-                title="Conversation history"
-              >
-                <History className="w-3.5 h-3.5" />
-                <span>History</span>
-              </button>
-              <button
-                onClick={() => {
-                  logger.debug('Toggling agent panel', { showAgentPanel: !showAgentPanel });
-                  setShowAgentPanel(!showAgentPanel);
-                }}
-                className="btn-minimal"
-              >
-                {showAgentPanel ? 'Hide Agents' : `Show Agents${agents.length > 0 ? ` (${agents.length})` : ''}`}
-              </button>
-              <button
-                onClick={() => {
                   logger.debug('Opening settings');
                   setShowSettings(true);
                 }}
-                className="btn-minimal flex items-center gap-2"
+                className="btn-minimal flex items-center gap-2 hover-lift"
                 title="Settings"
               >
                 <SettingsIcon className="w-3.5 h-3.5" />
@@ -203,7 +180,7 @@ function App() {
               <button
                 onClick={handleReset}
                 disabled={isProcessing}
-                className="btn-minimal flex items-center gap-2"
+                className="btn-minimal flex items-center gap-2 hover-lift press-effect"
                 title="Reset conversation"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
@@ -213,15 +190,20 @@ function App() {
           </div>
         </header>
 
-        {/* Main Content */}
-        <main className="flex-1 max-w-7xl w-full mx-auto px-6 pb-6 flex gap-6 overflow-hidden">
-          {/* Chat Section */}
-          <div className="flex-1 flex flex-col chat-container min-h-0">
+        {/* Main Content - Three Panel Layout */}
+        <main className="flex-1 flex overflow-hidden">
+          {/* Left Panel - Chat History (Always Visible) */}
+          <div className="history-panel-permanent animate-slide-in-right">
+            <ChatHistory />
+          </div>
+
+          {/* Center Panel - Chat Window */}
+          <div className="flex-1 flex flex-col chat-container-center min-h-0 animate-fade-in">
             <ChatWindow messages={messages} isProcessing={isProcessing} />
             
             {/* Error Display */}
             {error && (
-              <div className="error-banner flex-shrink-0">
+              <div className="error-banner flex-shrink-0 animate-shake">
                 <AlertCircle className="w-4 h-4 flex-shrink-0" />
                 <span className="text-sm">{error}</span>
               </div>
@@ -239,16 +221,13 @@ function App() {
             </div>
           </div>
 
-          {/* Agent Panel */}
+          {/* Right Panel - Agent Panel (Conditional) */}
           {showAgentPanel && (
-            <div className="w-80 flex-shrink-0 overflow-y-auto">
+            <div className="agent-panel-permanent animate-slide-in-left">
               <AgentPanel agents={agents} />
             </div>
           )}
         </main>
-
-        {/* Chat History Sidebar */}
-        <ChatHistory />
 
         {/* Settings Modal */}
         {showSettings && (

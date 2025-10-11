@@ -91,22 +91,22 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ messages, isProcessing }
               well-reasoned answers to your questions.
             </p>
             <div className="mt-10 space-y-3">
-              <p className="text-xs uppercase tracking-wider text-neutral-400 font-semibold mb-4">Example queries</p>
+              <p className="text-xs uppercase tracking-wider text-neutral-400 font-semibold mb-4 animate-fade-in">Example queries</p>
               <div className="space-y-2.5">
                 <button 
-                  className="example-query w-full"
+                  className="example-query w-full animate-fade-in-up animate-stagger-1 opacity-0 hover-lift press-effect"
                   onClick={() => handleExampleClick("Explain quantum computing")}
                 >
                   Explain quantum computing
                 </button>
                 <button 
-                  className="example-query w-full"
+                  className="example-query w-full animate-fade-in-up animate-stagger-2 opacity-0 hover-lift press-effect"
                   onClick={() => handleExampleClick("Help me plan a trip to Japan")}
                 >
                   Help me plan a trip to Japan
                 </button>
                 <button 
-                  className="example-query w-full"
+                  className="example-query w-full animate-fade-in-up animate-stagger-3 opacity-0 hover-lift press-effect"
                   onClick={() => handleExampleClick("Analyze this business idea: AI-powered meal planning")}
                 >
                   Analyze this business idea: AI-powered meal planning
@@ -118,7 +118,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ messages, isProcessing }
       ) : (
         <>
           {messages.map((message, index) => (
-            <div key={message.id}>
+            <React.Fragment key={message.id}>
               <MessageBubble 
                 message={message} 
                 isLatest={index === messages.length - 1}
@@ -129,15 +129,13 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ messages, isProcessing }
               {message.role === 'user' && 
                index === messages.filter(m => m.role === 'user').length - 1 && 
                agentConversations.length > 0 && (
-                <div className="mt-4">
-                  <AgentConversation rounds={agentConversations} />
-                </div>
+                <AgentConversation rounds={agentConversations} />
               )}
-            </div>
+            </React.Fragment>
           ))}
           
           {isProcessing && messages.length > 0 && (
-            <div className="processing-indicator">
+            <div className="processing-indicator animate-fade-in-up">
               <Loader className="w-4 h-4 animate-spin" />
               <span className="text-sm">Processing</span>
             </div>
@@ -150,7 +148,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ messages, isProcessing }
       {showScrollButton && (
         <button
           onClick={() => scrollToBottom('smooth')}
-          className="fixed bottom-24 right-8 z-50 p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="fixed bottom-36 right-6 z-50 p-3 bg-gradient-to-br from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-full shadow-lg transition-all duration-200 hover:scale-110 hover-lift press-effect animate-bounce-subtle focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           aria-label="Scroll to bottom"
           title="Scroll to bottom"
         >

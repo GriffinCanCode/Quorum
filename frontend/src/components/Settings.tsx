@@ -142,8 +142,8 @@ export function Settings({ onClose }: SettingsProps) {
   };
 
   return (
-    <div className="settings-overlay">
-      <div className="settings-modal">
+    <div className="settings-overlay animate-fade-in" onClick={handleCancel}>
+      <div className="settings-modal" onClick={(e) => e.stopPropagation()}>
         {/* Header with Close Button */}
         <div className="settings-header">
           <div className="settings-header-content">
@@ -159,7 +159,7 @@ export function Settings({ onClose }: SettingsProps) {
           </div>
           <button
             onClick={handleCancel}
-            className="settings-close-button"
+            className="settings-close-button hover-scale press-effect transition-colors-smooth"
             title="Close settings"
           >
             <X className="w-5 h-5" />
@@ -347,7 +347,7 @@ export function Settings({ onClose }: SettingsProps) {
                     className="settings-input"
                   />
                   <p className="settings-help-text">
-                    URL of the NoOversight backend server
+                    URL of the Quorum backend server
                   </p>
                 </div>
               </div>
@@ -512,7 +512,7 @@ export function Settings({ onClose }: SettingsProps) {
         <div className="settings-footer">
           <button
             onClick={handleReset}
-            className="settings-reset-button"
+            className="settings-reset-button hover-lift press-effect transition-colors-smooth"
           >
             <RotateCcw className="w-4 h-4" />
             <span>Reset to Defaults</span>
@@ -521,14 +521,14 @@ export function Settings({ onClose }: SettingsProps) {
           <div className="settings-action-buttons">
             <button
               onClick={handleCancel}
-              className="settings-cancel-button"
+              className="settings-cancel-button hover-lift press-effect transition-colors-smooth"
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
               disabled={!hasChanges || saveStatus === 'saving'}
-              className="settings-save-button"
+              className="settings-save-button hover-lift press-effect transition-colors-smooth"
             >
               {saveStatus === 'saving' ? (
                 <>
@@ -537,12 +537,12 @@ export function Settings({ onClose }: SettingsProps) {
                 </>
               ) : saveStatus === 'saved' ? (
                 <>
-                  <CheckCircle className="w-5 h-5" />
+                  <CheckCircle className="w-5 h-5 animate-scale-in" />
                   <span>Saved!</span>
                 </>
               ) : saveStatus === 'error' ? (
                 <>
-                  <XCircle className="w-5 h-5" />
+                  <XCircle className="w-5 h-5 animate-shake" />
                   <span>Error</span>
                 </>
               ) : (

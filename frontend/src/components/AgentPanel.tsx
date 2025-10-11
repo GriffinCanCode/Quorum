@@ -36,10 +36,10 @@ export const AgentPanel: React.FC<AgentPanelProps> = ({ agents }) => {
   
   if (agents.length === 0) {
     return (
-      <div className="agent-panel-empty">
-        <Users className="w-10 h-10 text-neutral-400 mx-auto mb-3" />
-        <p className="text-neutral-700 text-sm font-semibold">No active agents</p>
-        <p className="text-neutral-500 text-xs mt-1.5 font-medium">
+      <div className="agent-panel-empty animate-fade-in">
+        <Users className="w-10 h-10 text-neutral-500 mx-auto mb-3 animate-pulse-slow" />
+        <p className="text-neutral-200 text-sm font-semibold animate-fade-in-up">No active agents</p>
+        <p className="text-neutral-400 text-xs mt-1.5 font-medium animate-fade-in-up animate-stagger-1">
           Agents will appear when processing
         </p>
       </div>
@@ -47,12 +47,13 @@ export const AgentPanel: React.FC<AgentPanelProps> = ({ agents }) => {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 animate-fade-in">
       {/* Active Agents Section */}
       {activeAgents.length > 0 && (
         <div className="space-y-3">
           <div className="px-1">
-            <h2 className="text-xs uppercase tracking-wider font-bold text-blue-600">
+            <h2 className="text-xs uppercase tracking-wider font-bold text-blue-600 flex items-center gap-2 animate-fade-in-up">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 pulse-ring" />
               Active · {activeAgents.length}
             </h2>
           </div>
@@ -68,18 +69,19 @@ export const AgentPanel: React.FC<AgentPanelProps> = ({ agents }) => {
 
       {/* Divider between active and completed */}
       {activeAgents.length > 0 && completedAgents.length > 0 && (
-        <div className="agent-section-divider" />
+        <div className="agent-section-divider animate-fade-in" />
       )}
 
       {/* Completed Agents Section */}
       {completedAgents.length > 0 && (
         <div className="space-y-3">
           <div className="px-1">
-            <h2 className="text-xs uppercase tracking-wider font-semibold text-neutral-500">
+            <h2 className="text-xs uppercase tracking-wider font-semibold text-neutral-400 flex items-center gap-2 animate-fade-in-up">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
               Completed · {completedAgents.length}
             </h2>
           </div>
-          <div className="space-y-3 opacity-60">
+          <div className="space-y-3 opacity-60 transition-opacity duration-300">
             <AnimatePresence mode="popLayout">
               {completedAgents.map((agent) => (
                 <AgentCard key={agent.agentId} agent={agent} />

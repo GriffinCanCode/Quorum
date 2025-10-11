@@ -76,25 +76,25 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         placeholder={placeholder}
         disabled={isGenerating}
         rows={1}
-        className="input-field-clean resize-none min-h-[52px] max-h-[160px]"
+        className="input-field-clean resize-none min-h-[52px] max-h-[160px] transition-all duration-200"
       />
       {isGenerating ? (
         <button
           onClick={handleStop}
-          className="btn-send bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400"
+          className="btn-send bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 hover-lift press-effect animate-scale-in"
           aria-label="Stop generation"
           title="Stop generation"
         >
-          <Square className="w-4 h-4" fill="currentColor" />
+          <Square className="w-4 h-4 animate-pulse" fill="currentColor" />
         </button>
       ) : (
         <button
           onClick={handleSend}
           disabled={disabled || !input.trim()}
-          className="btn-send"
+          className="btn-send hover-lift press-effect transition-all duration-200"
           aria-label="Send message"
         >
-          <Send className="w-4 h-4" />
+          <Send className={`w-4 h-4 transition-transform duration-200 ${input.trim() ? 'translate-x-0.5 -translate-y-0.5' : ''}`} />
         </button>
       )}
     </div>

@@ -6,7 +6,7 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 FRONTEND_DIR="$PROJECT_ROOT/frontend"
 PID_FILE="$FRONTEND_DIR/.frontend.pid"
 
-echo "🛑 Stopping NoOversight Frontend..."
+echo "🛑 Stopping Quorum Frontend..."
 
 if [ ! -f "$PID_FILE" ]; then
     echo "⚠️  No PID file found. Frontend may not be running."

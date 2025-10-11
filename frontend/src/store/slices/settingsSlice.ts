@@ -72,7 +72,7 @@ export const defaultSettings: Settings = {
 // Local Storage Key
 // ============================================================================
 
-const SETTINGS_STORAGE_KEY = 'nooversight-settings';
+const SETTINGS_STORAGE_KEY = 'quorum-settings';
 
 // ============================================================================
 // Utility Functions

@@ -1,4 +1,4 @@
-# Multi-Agent Collaboration System
+# Quorum - Multi-Agent Collaboration System
 
 A sophisticated platform where multiple AI agents (Claude, GPT, Gemini) collaborate to accomplish complex tasks. The main orchestrator agent intelligently delegates subtasks to specialized sub-agents, synthesizing their responses into comprehensive answers.
 

@@ -7,7 +7,7 @@ FRONTEND_DIR="$PROJECT_ROOT/frontend"
 PID_FILE="$FRONTEND_DIR/.frontend.pid"
 FOREGROUND_MODE="${1:-background}"
 
-echo "🚀 Starting NoOversight Frontend..."
+echo "🚀 Starting Quorum Frontend..."
 
 # Check if port 5173 is in use and clear it
 PORT_PID=$(lsof -ti:5173)

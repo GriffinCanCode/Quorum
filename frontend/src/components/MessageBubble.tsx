@@ -111,10 +111,10 @@ const MessageBubbleComponent: React.FC<MessageBubbleProps> = ({ message, isLates
           <button
             onClick={handleExportPDF}
             disabled={isExporting}
-            className="export-pdf-button mt-3 px-3 py-1.5 text-xs font-medium rounded-lg border flex items-center gap-1.5"
+            className="export-pdf-button mt-3 px-3 py-1.5 text-xs font-medium rounded-lg border flex items-center gap-1.5 hover-lift press-effect transition-colors-smooth animate-fade-in-up"
             title="Export to PDF"
           >
-            <Download className="w-3.5 h-3.5" />
+            <Download className={`w-3.5 h-3.5 ${isExporting ? 'animate-bounce' : ''}`} />
             <span>{isExporting ? 'Exporting...' : 'Export to PDF'}</span>
           </button>
         )}

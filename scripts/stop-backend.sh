@@ -6,7 +6,7 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 BACKEND_DIR="$PROJECT_ROOT/backend"
 PID_FILE="$BACKEND_DIR/.backend.pid"
 
-echo "🛑 Stopping NoOversight Backend..."
+echo "🛑 Stopping Quorum Backend..."
 
 if [ ! -f "$PID_FILE" ]; then
     echo "⚠️  No PID file found. Backend may not be running."

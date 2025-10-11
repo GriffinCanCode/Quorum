@@ -1,9 +1,9 @@
-# Backend Makefile for NoOversight
+# Backend Makefile for Quorum
 
 .PHONY: help install start stop restart clean test lint
 
 help:
-	@echo "NoOversight Backend - Available Commands:"
+	@echo "Quorum Backend - Available Commands:"
 	@echo "  make install    - Create virtual environment and install dependencies"
 	@echo "  make start      - Start the backend server"
 	@echo "  make stop       - Stop the backend server"

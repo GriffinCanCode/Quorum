@@ -26,7 +26,7 @@ const AGENT_COLORS: Record<AgentType, string> = {
   'gemini-2.5-pro': 'bg-warning-500',
 };
 
-export const AgentCard: React.FC<AgentCardProps> = ({ agent }) => {
+export const AgentCard = React.forwardRef<HTMLDivElement, AgentCardProps>(({ agent }, ref) => {
   const logger = useLogger({ 
     component: 'AgentCard',
     context: { agentId: agent.agentId },
@@ -61,15 +61,15 @@ export const AgentCard: React.FC<AgentCardProps> = ({ agent }) => {
   const getStatusColor = () => {
     switch (agent.status) {
       case 'thinking':
-        return 'text-blue-600';
+        return 'text-blue-400';
       case 'responding':
-        return 'text-purple-600';
+        return 'text-purple-400';
       case 'complete':
-        return 'text-green-600';
+        return 'text-green-400';
       case 'error':
-        return 'text-red-600';
+        return 'text-red-400';
       default:
-        return 'text-neutral-500';
+        return 'text-neutral-400';
     }
   };
 
@@ -77,6 +77,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({ agent }) => {
 
   return (
     <motion.div
+      ref={ref}
       initial={{ opacity: 0, scale: 0.95, y: 10 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95, y: -10 }}
@@ -88,14 +89,14 @@ export const AgentCard: React.FC<AgentCardProps> = ({ agent }) => {
         <div className="flex items-center gap-3">
           <div className={`w-2.5 h-2.5 rounded-full ${agentColor} ${isActive ? 'agent-indicator-pulse' : ''}`} />
           <div>
-            <h3 className="text-sm font-semibold text-neutral-900 tracking-tight">{displayName}</h3>
+            <h3 className="text-sm font-semibold text-neutral-100 tracking-tight">{displayName}</h3>
             <p className={`text-xs font-semibold mt-0.5 ${getStatusColor()}`}>
               {getStatusText()}
             </p>
           </div>
         </div>
         {isActive && (
-          <Loader className="w-4 h-4 animate-spin text-blue-600" />
+          <Loader className="w-4 h-4 animate-spin text-blue-400" />
         )}
       </div>
 
@@ -105,15 +106,15 @@ export const AgentCard: React.FC<AgentCardProps> = ({ agent }) => {
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           transition={{ duration: 0.2 }}
-          className="mt-3 pt-3 border-t border-neutral-200"
+          className="mt-3 pt-3 border-t border-neutral-700"
         >
-          <p className="text-xs text-neutral-700 line-clamp-3 leading-relaxed">
+          <p className="text-xs text-neutral-300 line-clamp-3 leading-relaxed">
             {agent.currentMessage}
           </p>
         </motion.div>
       )}
     </motion.div>
   );
-};
+});
 
-
+AgentCard.displayName = 'AgentCard';

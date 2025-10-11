@@ -1,9 +1,9 @@
-# Root Makefile for NoOversight
+# Root Makefile for Quorum
 
 .PHONY: help install start stop restart status clean build dev test
 
 help:
-	@echo "NoOversight - Available Commands:"
+	@echo "Quorum - Available Commands:"
 	@echo ""
 	@echo "Setup & Installation:"
 	@echo "  make install         - Install all dependencies (backend + frontend)"

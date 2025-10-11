@@ -69,6 +69,23 @@ function AgentConversationComponent({ rounds }: AgentConversationProps) {
     }
   }, [rounds.length]);
 
+  // Auto-collapse rounds when they become complete
+  useEffect(() => {
+    rounds.forEach(round => {
+      if (round.isComplete) {
+        setExpandedRounds(prev => {
+          // If this round is expanded and now complete, collapse it
+          if (prev.has(round.roundNumber)) {
+            const next = new Set(prev);
+            next.delete(round.roundNumber);
+            return next;
+          }
+          return prev;
+        });
+      }
+    });
+  }, [rounds]);
+
   const toggleRound = useCallback((roundNumber: number) => {
     setExpandedRounds(prev => {
       const next = new Set(prev);
@@ -107,10 +124,10 @@ function AgentConversationComponent({ rounds }: AgentConversationProps) {
   };
 
   return (
-    <div className="agent-conversation">
+    <div className="agent-conversation animate-fade-in-up">
       <div className="agent-conversation-header">
-        <h3 className="text-sm font-semibold text-gray-700">Agent Discussion</h3>
-        <span className="text-xs text-gray-500">
+        <h3 className="text-sm font-semibold text-neutral-200 animate-fade-in">Agent Discussion</h3>
+        <span className="text-xs text-neutral-400 animate-fade-in animate-stagger-1">
           {rounds.length} round{rounds.length !== 1 ? 's' : ''}
         </span>
       </div>
@@ -128,7 +145,7 @@ function AgentConversationComponent({ rounds }: AgentConversationProps) {
               {/* Timeline node */}
               <div className="timeline-node-container">
                 <button
-                  className={`timeline-node ${isLatest ? 'timeline-node-active' : ''}`}
+                  className={`timeline-node ${isLatest ? 'timeline-node-active' : ''} hover-scale press-effect transition-colors-smooth`}
                   onClick={() => toggleRound(round.roundNumber)}
                   aria-label={`Toggle round ${round.roundNumber}`}
                 >
@@ -138,7 +155,7 @@ function AgentConversationComponent({ rounds }: AgentConversationProps) {
               </div>
 
               {/* Round card */}
-              <div className={`round-card ${isExpanded ? 'round-card-expanded' : 'round-card-collapsed'}`}>
+              <div className={`round-card ${isExpanded ? 'round-card-expanded' : 'round-card-collapsed'} hover-lift transition-colors-smooth`}>
                 {/* Card header - always visible */}
                 <button
                   className="round-card-header"

@@ -1,2 +1,2 @@
-"""Test suite for NoOversight backend."""
+"""Test suite for Quorum backend."""
 

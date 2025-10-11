@@ -1,6 +1,6 @@
 # Tool Registry System
 
-The NoOversight agent system includes a comprehensive tool registry that allows agents to access external capabilities like web search.
+The Quorum agent system includes a comprehensive tool registry that allows agents to access external capabilities like web search.
 
 ## Features
 

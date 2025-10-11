@@ -1,9 +1,9 @@
-# Frontend Makefile for NoOversight
+# Frontend Makefile for Quorum
 
 .PHONY: help install start stop restart clean build dev lint
 
 help:
-	@echo "NoOversight Frontend - Available Commands:"
+	@echo "Quorum Frontend - Available Commands:"
 	@echo "  make install    - Install dependencies"
 	@echo "  make start      - Start the frontend dev server"
 	@echo "  make stop       - Stop the frontend dev server"

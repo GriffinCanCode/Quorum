@@ -8,7 +8,7 @@ VENV_DIR="$BACKEND_DIR/venv"
 PID_FILE="$BACKEND_DIR/.backend.pid"
 FOREGROUND_MODE="${1:-background}"
 
-echo "🚀 Starting NoOversight Backend..."
+echo "🚀 Starting Quorum Backend..."
 
 # Check if port 8000 is in use and clear it
 PORT_PID=$(lsof -ti:8000)

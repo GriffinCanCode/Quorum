@@ -81,13 +81,13 @@ export const useStore = create<RootStore>()(
         },
       }),
       {
-        name: 'nooversight-store',
+        name: 'quorum-store',
         partialize,
         version: 1,
       }
     ),
     {
-      name: 'NoOversight Store',
+      name: 'Quorum Store',
       enabled: import.meta.env.DEV,
     }
   )

@@ -6,7 +6,7 @@ import { StateCreator } from 'zustand';
 import { HistorySlice, RootStore, ConversationHistory } from '../types';
 import { AgentType } from '@/types';
 
-const STORAGE_KEY = 'nooversight-conversation-history';
+const STORAGE_KEY = 'quorum-conversation-history';
 const MAX_HISTORY_ITEMS = 50;
 
 // Generate a smart title from the user's query
@@ -177,19 +177,34 @@ export const createHistorySlice: StateCreator<
       )
     );
 
+    // Generate assistant preview - only show "Processing..." if no assistant message at all
+    // If there's an assistant message, use it even if it's short
+    let assistantPreview = 'Processing...';
+    if (firstAssistantMsg) {
+      const content = firstAssistantMsg.content.trim();
+      if (content.length > 0) {
+        assistantPreview = content.length > 120 
+          ? content.substring(0, 120) + '...'
+          : content;
+      }
+    }
+
+    const conversationId = state.conversationId || `conv_${Date.now()}`;
+    
+    // Check if this conversation already exists in history
+    const existingConv = state.conversationHistory.find(c => c.id === conversationId);
+    
     const conversation: ConversationHistory = {
-      id: state.conversationId || `conv_${Date.now()}`,
+      id: conversationId,
       title: generateTitle(firstUserMsg.content),
       timestamp: firstUserMsg.timestamp,
       lastUpdated: new Date().toISOString(),
       userQuery: firstUserMsg.content,
-      assistantPreview: firstAssistantMsg 
-        ? firstAssistantMsg.content.substring(0, 120) + '...'
-        : 'Processing...',
+      assistantPreview,
       messageCount: messages.length,
       agentsUsed: agentsUsed as AgentType[],
       conversationRounds: state.agentConversations.length,
-      isStarred: false,
+      isStarred: existingConv?.isStarred ?? false, // Preserve starred status if exists
     };
 
     get().addToHistory(conversation);

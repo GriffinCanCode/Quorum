@@ -49,7 +49,7 @@ interface ToolUsageItemProps {
   isProcessing?: boolean;
 }
 
-const ToolUsageItem: React.FC<ToolUsageItemProps> = ({ tool, isProcessing }) => {
+const ToolUsageItem: React.FC<ToolUsageItemProps> = ({ tool }) => {
   const isWebSearch = tool.toolName === 'web_search';
   
   const getStatusColor = () => {
@@ -116,25 +116,33 @@ const ToolUsageItem: React.FC<ToolUsageItemProps> = ({ tool, isProcessing }) => 
         )}
 
         {tool.status === 'complete' && tool.results && tool.results.length > 0 && (
-          <div className="tool-results">
+          <motion.div 
+            className="tool-results"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            transition={{ duration: 0.3, delay: 0.2 }}
+          >
             {tool.results.slice(0, 3).map((result, idx) => (
-              <a
+              <motion.a
                 key={idx}
                 href={result.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="result-link"
+                className="result-link hover-lift press-effect transition-colors-smooth"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.2, delay: 0.3 + idx * 0.05 }}
               >
                 <ExternalLink className="w-3 h-3" />
                 <span className="result-title">{result.title}</span>
-              </a>
+              </motion.a>
             ))}
             {tool.results.length > 3 && (
-              <span className="more-results">
+              <span className="more-results animate-fade-in">
                 +{tool.results.length - 3} more
               </span>
             )}
-          </div>
+          </motion.div>
         )}
       </div>
     </motion.div>

@@ -1,20 +1,20 @@
 /**
- * ChatHistory - Sidebar for browsing conversation history
- * Features a unique stacked card design with smart temporal visual weight
+ * ChatHistory - Redesigned sidebar with modern UX/UI principles
+ * Features: Clean hierarchy, smooth interactions, enhanced accessibility
  */
-import { memo, useMemo } from 'react';
-import { X, Search, Clock, MessageSquare, Star, Trash2, History } from 'lucide-react';
+import { memo, useMemo, useState } from 'react';
+import { Search, Clock, MessageSquare, Star, Trash2, X, MoreVertical, Archive } from 'lucide-react';
 import { useStore } from '@/store';
 import { ConversationHistory } from '@/store/types';
 import { AgentType } from '@/types';
 import '../styles/chatHistory.css';
 
-// Agent color mappings matching the main app
+// Agent color mappings with enhanced visual design
 const agentColors: Record<AgentType, string> = {
-  'claude-sonnet-4.5': 'bg-purple-600 text-white',
-  'claude-sonnet-3.5': 'bg-blue-600 text-white',
-  'gpt-5': 'bg-green-600 text-white',
-  'gemini-2.5-pro': 'bg-orange-600 text-white',
+  'claude-sonnet-4.5': 'agent-badge-purple',
+  'claude-sonnet-3.5': 'agent-badge-blue',
+  'gpt-5': 'agent-badge-green',
+  'gemini-2.5-pro': 'agent-badge-orange',
 };
 
 const agentInitials: Record<AgentType, string> = {
@@ -59,14 +59,18 @@ const isOlder = (timestamp: string): boolean => {
 
 interface ConversationCardProps {
   conversation: ConversationHistory;
+  isActive: boolean;
   onToggleStar: (id: string) => void;
   onDelete: (id: string) => void;
   onLoad: (id: string) => void;
 }
 
-const ConversationCard = memo(({ conversation, onToggleStar, onDelete, onLoad }: ConversationCardProps) => {
+const ConversationCard = memo(({ conversation, isActive, onToggleStar, onDelete, onLoad }: ConversationCardProps) => {
+  const [showMenu, setShowMenu] = useState(false);
+
   const cardClass = [
     'history-card',
+    isActive && 'active',
     conversation.isStarred && 'starred',
     isRecent(conversation.lastUpdated) && 'recent',
     isOlder(conversation.lastUpdated) && 'older',
@@ -74,6 +78,7 @@ const ConversationCard = memo(({ conversation, onToggleStar, onDelete, onLoad }:
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
+    setShowMenu(false);
     if (confirm(`Delete "${conversation.title}"?`)) {
       onDelete(conversation.id);
     }
@@ -81,7 +86,13 @@ const ConversationCard = memo(({ conversation, onToggleStar, onDelete, onLoad }:
 
   const handleToggleStar = (e: React.MouseEvent) => {
     e.stopPropagation();
+    setShowMenu(false);
     onToggleStar(conversation.id);
+  };
+
+  const handleMenuToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowMenu(!showMenu);
   };
 
   return (
@@ -97,63 +108,92 @@ const ConversationCard = memo(({ conversation, onToggleStar, onDelete, onLoad }:
         }
       }}
       aria-label={`Load conversation: ${conversation.title}`}
+      aria-current={isActive ? 'true' : 'false'}
     >
-      <div className="history-card-header">
-        <div className="history-card-title">{conversation.title}</div>
-        <button
-          className={`history-star-button ${conversation.isStarred ? 'starred' : ''}`}
-          onClick={handleToggleStar}
-          aria-label={conversation.isStarred ? 'Unstar conversation' : 'Star conversation'}
-        >
-          <Star
-            className="w-4 h-4"
-            fill={conversation.isStarred ? 'currentColor' : 'none'}
-          />
-        </button>
-      </div>
+      {/* Active Indicator */}
+      {isActive && <div className="history-card-active-indicator" />}
 
-      {conversation.assistantPreview && (
-        <div className="history-card-preview">{conversation.assistantPreview}</div>
-      )}
-
-      <div className="history-card-footer">
-        <div className="history-card-agents">
-          {conversation.agentsUsed.slice(0, 3).map((agentType) => (
-            <div
-              key={agentType}
-              className={`history-agent-badge ${agentColors[agentType]}`}
-              title={agentType}
+      <div className="history-card-content">
+        <div className="history-card-header">
+          <div className="history-card-title-section">
+            <div className="history-card-title">{conversation.title}</div>
+            {conversation.assistantPreview && (
+              <div className="history-card-preview">{conversation.assistantPreview}</div>
+            )}
+          </div>
+          
+          {/* Quick Actions */}
+          <div className="history-card-quick-actions">
+            <button
+              className={`history-action-button star-button ${conversation.isStarred ? 'starred' : ''}`}
+              onClick={handleToggleStar}
+              aria-label={conversation.isStarred ? 'Unstar conversation' : 'Star conversation'}
             >
-              {agentInitials[agentType]}
-            </div>
-          ))}
-          {conversation.agentsUsed.length > 3 && (
-            <div className="history-agent-badge bg-gray-500 text-white text-[10px]">
-              +{conversation.agentsUsed.length - 3}
-            </div>
-          )}
-        </div>
-
-        <div className="history-card-metadata">
-          <div className="history-card-meta-item">
-            <MessageSquare className="history-card-meta-icon" />
-            <span>{conversation.messageCount}</span>
-          </div>
-          <div className="history-card-meta-item">
-            <Clock className="history-card-meta-icon" />
-            <span>{formatTimestamp(conversation.lastUpdated)}</span>
+              <Star
+                className="w-4 h-4"
+                fill={conversation.isStarred ? 'currentColor' : 'none'}
+              />
+            </button>
+            <button
+              className="history-action-button menu-button"
+              onClick={handleMenuToggle}
+              aria-label="More options"
+            >
+              <MoreVertical className="w-4 h-4" />
+            </button>
           </div>
         </div>
-      </div>
 
-      <div className="history-card-actions">
-        <button
-          className="history-delete-button"
-          onClick={handleDelete}
-          aria-label="Delete conversation"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-        </button>
+        <div className="history-card-footer">
+          <div className="history-card-agents">
+            {conversation.agentsUsed.slice(0, 3).map((agentType) => (
+              <div
+                key={agentType}
+                className={`history-agent-badge ${agentColors[agentType]}`}
+                title={agentType}
+              >
+                {agentInitials[agentType]}
+              </div>
+            ))}
+            {conversation.agentsUsed.length > 3 && (
+              <div className="history-agent-badge agent-badge-more">
+                +{conversation.agentsUsed.length - 3}
+              </div>
+            )}
+          </div>
+
+          <div className="history-card-metadata">
+            <div className="history-card-meta-item">
+              <MessageSquare className="history-card-meta-icon" />
+              <span>{conversation.messageCount}</span>
+            </div>
+            <div className="history-card-meta-item">
+              <Clock className="history-card-meta-icon" />
+              <span>{formatTimestamp(conversation.lastUpdated)}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Context Menu */}
+        {showMenu && (
+          <div className="history-card-menu" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="history-menu-item"
+              onClick={handleToggleStar}
+            >
+              <Star className="w-4 h-4" fill={conversation.isStarred ? 'currentColor' : 'none'} />
+              <span>{conversation.isStarred ? 'Unstar' : 'Star'}</span>
+            </button>
+            <div className="history-menu-divider" />
+            <button
+              className="history-menu-item danger"
+              onClick={handleDelete}
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>Delete</span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -162,11 +202,12 @@ const ConversationCard = memo(({ conversation, onToggleStar, onDelete, onLoad }:
 ConversationCard.displayName = 'ConversationCard';
 
 function ChatHistoryComponent() {
-  const showHistory = useStore((state) => state.showHistory);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  
   const conversationHistory = useStore((state) => state.conversationHistory);
   const searchQuery = useStore((state) => state.historySearchQuery);
+  const conversationId = useStore((state) => state.conversationId);
   
-  const setShowHistory = useStore((state) => state.setShowHistory);
   const setSearchQuery = useStore((state) => state.setHistorySearchQuery);
   const toggleStarred = useStore((state) => state.toggleStarred);
   const removeFromHistory = useStore((state) => state.removeFromHistory);
@@ -218,53 +259,38 @@ function ChatHistoryComponent() {
 
   const handleLoadConversation = (conversationId: string) => {
     loadConversation(conversationId);
-    setShowHistory(false);
   };
 
-  if (!showHistory) return null;
+  const hasSearchQuery = searchQuery.trim().length > 0;
 
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        className="history-backdrop"
-        onClick={() => setShowHistory(false)}
-        aria-hidden="true"
-      />
-
-      {/* Sidebar */}
-      <aside className="history-sidebar" role="complementary" aria-label="Conversation history">
-        {/* Header */}
-        <div className="history-header">
-          <div className="history-title-row">
-            <div className="history-title-group">
-              <div className="history-icon-wrapper">
-                <History className="history-icon" />
-              </div>
-              <h2 className="history-title">History</h2>
-            </div>
+    <aside className="history-sidebar-permanent" role="complementary" aria-label="Conversation history">
+      {/* Header */}
+      <div className="history-header">
+        {/* Enhanced Search */}
+        <div className={`history-search-container ${isSearchFocused ? 'focused' : ''} ${hasSearchQuery ? 'has-value' : ''}`}>
+          <Search className="history-search-icon" />
+          <input
+            type="text"
+            className="history-search-input"
+            placeholder="Search conversations..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => setIsSearchFocused(true)}
+            onBlur={() => setIsSearchFocused(false)}
+            aria-label="Search conversations"
+          />
+          {hasSearchQuery && (
             <button
-              className="history-close-button"
-              onClick={() => setShowHistory(false)}
-              aria-label="Close history"
+              className="history-search-clear"
+              onClick={() => setSearchQuery('')}
+              aria-label="Clear search"
             >
-              <X className="w-5 h-5" />
+              <X className="w-3.5 h-3.5" />
             </button>
-          </div>
-
-          {/* Search */}
-          <div className="history-search-container">
-            <Search className="history-search-icon" />
-            <input
-              type="text"
-              className="history-search-input"
-              placeholder="Search conversations..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              aria-label="Search conversations"
-            />
-          </div>
+          )}
         </div>
+      </div>
 
         {/* Conversation List */}
         <div className="history-list-container">
@@ -286,16 +312,18 @@ function ChatHistoryComponent() {
             <>
               {/* Starred Conversations */}
               {starred.length > 0 && (
-                <div>
+                <div className="history-section">
                   <div className="history-section-header">
-                    <Star className="w-3 h-3 inline mr-1" />
-                    Starred
+                    <Star className="w-3.5 h-3.5" />
+                    <span>Starred</span>
+                    <span className="history-section-count">{starred.length}</span>
                   </div>
                   <div className="history-list">
                     {starred.map((conv) => (
                       <ConversationCard
                         key={conv.id}
                         conversation={conv}
+                        isActive={conv.id === conversationId}
                         onToggleStar={toggleStarred}
                         onDelete={removeFromHistory}
                         onLoad={handleLoadConversation}
@@ -307,13 +335,18 @@ function ChatHistoryComponent() {
 
               {/* Today */}
               {today.length > 0 && (
-                <div>
-                  <div className="history-section-header">Today</div>
+                <div className="history-section">
+                  <div className="history-section-header">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>Today</span>
+                    <span className="history-section-count">{today.length}</span>
+                  </div>
                   <div className="history-list">
                     {today.map((conv) => (
                       <ConversationCard
                         key={conv.id}
                         conversation={conv}
+                        isActive={conv.id === conversationId}
                         onToggleStar={toggleStarred}
                         onDelete={removeFromHistory}
                         onLoad={handleLoadConversation}
@@ -325,13 +358,18 @@ function ChatHistoryComponent() {
 
               {/* This Week */}
               {thisWeek.length > 0 && (
-                <div>
-                  <div className="history-section-header">This Week</div>
+                <div className="history-section">
+                  <div className="history-section-header">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>This Week</span>
+                    <span className="history-section-count">{thisWeek.length}</span>
+                  </div>
                   <div className="history-list">
                     {thisWeek.map((conv) => (
                       <ConversationCard
                         key={conv.id}
                         conversation={conv}
+                        isActive={conv.id === conversationId}
                         onToggleStar={toggleStarred}
                         onDelete={removeFromHistory}
                         onLoad={handleLoadConversation}
@@ -343,13 +381,18 @@ function ChatHistoryComponent() {
 
               {/* Older */}
               {older.length > 0 && (
-                <div>
-                  <div className="history-section-header">Older</div>
+                <div className="history-section">
+                  <div className="history-section-header">
+                    <Archive className="w-3.5 h-3.5" />
+                    <span>Older</span>
+                    <span className="history-section-count">{older.length}</span>
+                  </div>
                   <div className="history-list">
                     {older.map((conv) => (
                       <ConversationCard
                         key={conv.id}
                         conversation={conv}
+                        isActive={conv.id === conversationId}
                         onToggleStar={toggleStarred}
                         onDelete={removeFromHistory}
                         onLoad={handleLoadConversation}
@@ -376,7 +419,6 @@ function ChatHistoryComponent() {
           </div>
         )}
       </aside>
-    </>
   );
 }
 
