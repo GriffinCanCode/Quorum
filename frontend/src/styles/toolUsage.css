@@ -1,0 +1,152 @@
+/**
+ * Tool Usage Display Styles
+ * Contained visual for tool usage (especially web search)
+ * Complements the generation cycle without conflicting with existing UI
+ */
+
+.tool-usage-container {
+  @apply my-4 rounded-xl border border-neutral-200 bg-gradient-to-br from-blue-50/50 to-indigo-50/30 backdrop-blur-sm overflow-hidden;
+  @apply shadow-sm hover:shadow-md transition-shadow duration-300;
+}
+
+.tool-usage-header {
+  @apply flex items-center gap-2 px-4 py-3 bg-white/60 border-b border-neutral-200;
+  @apply text-neutral-700 font-medium;
+}
+
+.tool-usage-content {
+  @apply p-4 space-y-3;
+}
+
+.tool-usage-item {
+  @apply flex gap-3 p-3 rounded-lg bg-white/80 border border-neutral-200/60;
+  @apply hover:border-blue-300/50 hover:bg-white/90 transition-all duration-200;
+  @apply shadow-sm;
+}
+
+.tool-icon {
+  @apply flex-shrink-0 w-8 h-8 rounded-lg bg-blue-100/80 flex items-center justify-center;
+  @apply border border-blue-200/50;
+}
+
+.tool-details {
+  @apply flex-1 min-w-0 space-y-2;
+}
+
+.tool-name-row {
+  @apply flex items-center justify-between gap-2;
+}
+
+.tool-name {
+  @apply text-sm font-semibold text-neutral-800;
+}
+
+.tool-status {
+  @apply flex items-center gap-1.5 text-xs font-medium rounded-full px-2 py-0.5;
+}
+
+.tool-status.status-pending {
+  @apply bg-blue-100/80 text-blue-700 border border-blue-200/50;
+}
+
+.tool-status.status-complete {
+  @apply bg-green-100/80 text-green-700 border border-green-200/50;
+}
+
+.tool-status.status-error {
+  @apply bg-red-100/80 text-red-700 border border-red-200/50;
+}
+
+.status-spinner {
+  @apply relative w-3 h-3;
+}
+
+.spinner-ring {
+  @apply absolute inset-0 border-2 border-transparent border-t-blue-600 rounded-full;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.tool-query {
+  @apply flex items-center gap-2 text-sm text-neutral-700 bg-neutral-50/80 rounded-md px-3 py-2;
+  @apply border border-neutral-200/60;
+}
+
+.query-text {
+  @apply flex-1 font-medium truncate;
+}
+
+.tool-provider {
+  @apply text-xs text-neutral-500 italic;
+}
+
+.tool-results {
+  @apply mt-2 space-y-1.5 pl-2 border-l-2 border-blue-200/50;
+}
+
+.result-link {
+  @apply flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700;
+  @apply hover:underline transition-colors duration-150;
+  @apply py-1;
+}
+
+.result-title {
+  @apply truncate flex-1;
+}
+
+.more-results {
+  @apply inline-block text-xs text-neutral-500 mt-1 font-medium;
+}
+
+/* Dark mode support (if needed later) */
+@media (prefers-color-scheme: dark) {
+  .tool-usage-container {
+    @apply border-neutral-700 bg-gradient-to-br from-neutral-800/50 to-neutral-900/30;
+  }
+
+  .tool-usage-header {
+    @apply bg-neutral-800/60 border-neutral-700 text-neutral-300;
+  }
+
+  .tool-usage-item {
+    @apply bg-neutral-800/80 border-neutral-700/60;
+    @apply hover:border-blue-500/50 hover:bg-neutral-800/90;
+  }
+
+  .tool-icon {
+    @apply bg-blue-900/80 border-blue-800/50;
+  }
+
+  .tool-name {
+    @apply text-neutral-200;
+  }
+
+  .tool-query {
+    @apply text-neutral-300 bg-neutral-900/80 border-neutral-700/60;
+  }
+
+  .result-link {
+    @apply text-blue-400 hover:text-blue-300;
+  }
+}
+
+/* Animation variants */
+.tool-usage-item-enter {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+@keyframes slideInLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
