@@ -1,64 +1,61 @@
-# Quorum - Multi-Agent Collaboration System
+# NoOversight - Multi-Agent AI Platform
 
-A sophisticated platform where multiple AI agents (Claude, GPT, Gemini) collaborate to accomplish complex tasks. The main orchestrator agent intelligently delegates subtasks to specialized sub-agents, synthesizing their responses into comprehensive answers.
+A production-ready platform enabling multiple AI agents (Claude, GPT, Gemini) to collaborate on complex tasks. The system uses an intelligent orchestrator to delegate subtasks to specialized agents, synthesizing their responses into coherent solutions.
 
-## 🎯 Architecture Highlights
+## Overview
 
-### Why This Design is Superior
+NoOversight implements a lightweight, streaming-first architecture for multi-agent AI coordination. Unlike heavyweight frameworks (LangGraph, CrewAI, AutoGen), this system prioritizes maintainability, performance, and real-time user feedback through Server-Sent Events and asynchronous processing.
 
-**Traditional Approach**: Heavy frameworks like LangGraph, CrewAI, or AutoGen with steep learning curves and complex abstractions.
+### Architecture
 
-**Our Approach**: Streaming-first, LiteLLM-powered orchestrator that's:
-- ✨ **Simple & Maintainable**: ~400 lines per file, easy to understand and modify
-- 🚀 **High Performance**: Async Python + parallel agent execution
-- 🔄 **Real-time**: Server-Sent Events for live streaming updates
-- 🎨 **Beautiful UX**: React + Framer Motion for smooth animations
-- 🧩 **Modular**: Clean separation of concerns
+**Backend**
+- FastAPI with async support
+- LiteLLM for unified model access
+- PostgreSQL for conversation persistence
+- WebSocket and SSE for real-time streaming
+- Tool system with web search capabilities
 
-### Tech Stack
+**Frontend**
+- React 18 with TypeScript
+- Tailwind CSS for styling
+- Zustand for state management
+- Framer Motion for animations
+- Real-time message streaming
 
-**Backend** (Python):
-- **FastAPI**: Modern async web framework
-- **LiteLLM**: Unified API for Claude, GPT, Gemini with streaming
-- **SSE-Starlette**: Server-Sent Events for real-time updates
-- **Pydantic**: Type-safe data models
+## Prerequisites
 
-**Frontend** (TypeScript/React):
-- **React 18**: Modern UI library
-- **TypeScript**: Type safety across the stack
-- **Tailwind CSS**: Utility-first styling with custom dark theme
-- **Framer Motion**: Smooth animations
-- **Zustand**: Lightweight state management
+- Python 3.11 or higher
+- Node.js 18 or higher
+- PostgreSQL 13 or higher
+- API keys: Anthropic, OpenAI, Google
 
-## 🚀 Quick Start
-
-### Prerequisites
-
-- Python 3.11+
-- Node.js 18+
-- API keys for: Anthropic, OpenAI, Google
+## Installation
 
 ### Backend Setup
 
 ```bash
 cd backend
 
-# Create virtual environment
+# Create and activate virtual environment
 python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate  # Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Configure environment
-cp .env.example .env
-# Edit .env with your API keys
+# Configure environment variables
+cp config/env_template.txt .env
+# Edit .env with your API keys and database credentials
 
-# Run server
-python3 main.py
+# Initialize database
+./scripts/setup_postgres.sh
+./scripts/init_database.sh
+
+# Start server
+make run
 ```
 
-Server runs on `http://localhost:8000`
+Backend runs at `http://localhost:8000`
 
 ### Frontend Setup
 
@@ -68,182 +65,249 @@ cd frontend
 # Install dependencies
 npm install
 
-# Run development server
+# Start development server
 npm run dev
 ```
 
-Frontend runs on `http://localhost:3000`
+Frontend runs at `http://localhost:5173`
 
-## 📁 Project Structure
+### Quick Start with Make
 
-```
-/backend
-├── main.py                 # FastAPI app & SSE endpoints
-├── config.py              # Configuration management
-├── models.py              # Pydantic data models
-├── requirements.txt       # Python dependencies
-├── /agents
-│   ├── base_agent.py      # Base agent class with LiteLLM
-│   └── agent_factory.py   # Agent creation & configuration
-└── /orchestrator
-    └── task_orchestrator.py  # Multi-agent coordination
-
-/frontend
-├── /src
-│   ├── App.tsx            # Main application component
-│   ├── main.tsx           # Entry point
-│   ├── index.css          # Tailwind styles
-│   ├── /components        # React components
-│   │   ├── AgentCard.tsx      # Agent status display
-│   │   ├── AgentPanel.tsx     # Agent grid container
-│   │   ├── ChatWindow.tsx     # Message display
-│   │   ├── ChatInput.tsx      # User input
-│   │   └── MessageBubble.tsx  # Individual messages
-│   ├── /services
-│   │   └── api.ts         # Backend API client
-│   ├── /store
-│   │   └── useConversationStore.ts  # Zustand store
-│   └── /types
-│       └── index.ts       # TypeScript definitions
-├── package.json
-├── tsconfig.json
-├── tailwind.config.js
-└── vite.config.ts
+From project root:
+```bash
+make setup    # Install all dependencies
+make dev      # Start both backend and frontend
+make test     # Run test suites
 ```
 
-## 🎨 Features
+## Configuration
 
-### Intelligent Agent Orchestration
-- Main Claude 4.5 agent analyzes tasks and decides on delegation
-- Parallel execution of sub-agent queries
-- Automatic response synthesis
+### Environment Variables
 
-### Real-Time Collaboration Visualization
-- Live agent status updates
-- Visual feedback for thinking/responding states
-- Progress indicators and animated transitions
-
-### Streaming Responses
-- Token-by-token response streaming
-- Server-Sent Events for efficient real-time updates
-- Smooth UI updates without flicker
-
-### Beautiful Dark Theme
-- Glass morphism effects
-- Smooth animations with Framer Motion
-- Responsive design
-
-## 🔑 API Endpoints
-
-### POST `/api/task/stream`
-Process a task with streaming responses (SSE).
-
-**Request Body**:
-```json
-{
-  "message": "Your question here",
-  "enableCollaboration": true,
-  "maxSubAgents": 3
-}
-```
-
-**Response**: Server-Sent Events stream
-
-### POST `/api/task`
-Process a task and return complete result (non-streaming).
-
-### POST `/api/reset`
-Reset the conversation state.
-
-### GET `/health`
-Health check with API key status.
-
-## 🎯 How It Works
-
-1. **User Input**: User asks a question through the chat interface
-2. **Analysis**: Main Claude agent analyzes the task complexity
-3. **Delegation**: If beneficial, creates specific queries for sub-agents
-4. **Parallel Execution**: Sub-agents (Claude, GPT, Gemini) work simultaneously
-5. **Synthesis**: Main agent combines insights into a coherent response
-6. **Streaming**: Response streams to UI in real-time with visual feedback
-
-## 🛠️ Configuration
-
-### Backend (`backend/.env`)
+**Backend** (`.env` in backend directory):
 ```env
-ANTHROPIC_API_KEY=your_key
-OPENAI_API_KEY=your_key
-GOOGLE_API_KEY=your_key
+# API Keys
+ANTHROPIC_API_KEY=your_anthropic_key
+OPENAI_API_KEY=your_openai_key
+GOOGLE_API_KEY=your_google_key
 
+# Database
+DATABASE_URL=postgresql://user:password@localhost:5432/nooversight
+
+# Server
 HOST=0.0.0.0
 PORT=8000
-CORS_ORIGINS=http://localhost:3000
+CORS_ORIGINS=http://localhost:5173
+
+# Optional
+LOG_LEVEL=INFO
+MAX_SUB_AGENTS=3
 ```
 
-### Frontend
-API endpoint is auto-configured via Vite proxy. For production:
-```env
-VITE_API_BASE=https://your-backend-url
+**Frontend** (environment-specific):
+- Development: Vite proxy auto-configured
+- Production: Set `VITE_API_BASE_URL`
+
+## Project Structure
+
+```
+backend/
+├── src/
+│   ├── agents/          # Agent implementations
+│   ├── api/             # FastAPI routes
+│   ├── core/            # Business logic
+│   ├── infrastructure/  # Database, logging, tracking
+│   ├── tools/           # Tool implementations
+│   └── app.py          # Application entry point
+├── tests/              # Test suite
+└── scripts/            # Database setup scripts
+
+frontend/
+├── src/
+│   ├── components/     # React components
+│   ├── hooks/          # Custom hooks
+│   ├── services/       # API clients
+│   ├── store/          # State management
+│   ├── styles/         # CSS modules
+│   └── types/          # TypeScript definitions
+└── dist/              # Production build
 ```
 
-## 🧪 Development
+## API Reference
 
-### Backend
-```bash
-# With auto-reload
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
-```
+### Core Endpoints
 
-### Frontend
-```bash
-# Development with HMR
-npm run dev
+**POST** `/api/tasks/execute`
+Execute a task with optional agent collaboration.
 
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
-```
-
-## 📝 Adding New Agents
-
-1. Add agent type to `models.py`:
-```python
-class AgentType(str, Enum):
-    NEW_AGENT = "new-agent-name"
-```
-
-2. Configure in `agent_factory.py`:
-```python
-MODEL_MAP = {
-    AgentType.NEW_AGENT: "provider/model-name",
+Request:
+```json
+{
+  "message": "string",
+  "enable_collaboration": boolean,
+  "max_sub_agents": number
 }
 ```
 
-3. Update frontend types in `src/types/index.ts`
+**GET** `/api/conversations/{id}`
+Retrieve conversation history.
 
-## 🎨 Customization
+**POST** `/api/conversations/{id}/messages`
+Add message to existing conversation.
 
-### Styling
-Edit `frontend/tailwind.config.js` for colors and theme.
-Custom styles in `frontend/src/index.css`.
+**GET** `/api/settings`
+Retrieve system settings and model configurations.
 
-### Agent Behavior
-Modify system prompts in `backend/agents/agent_factory.py`.
+**GET** `/health`
+Health check with service status.
 
-### Orchestration Logic
-Adjust delegation strategy in `backend/orchestrator/task_orchestrator.py`.
+### WebSocket
 
-## 📄 License
+**WS** `/ws`
+Real-time bidirectional communication for streaming responses.
 
-MIT License - feel free to use this for your projects!
+## Usage
 
-## 🤝 Contributing
+### Basic Task Execution
 
-This is a reference implementation. Feel free to fork and customize for your needs!
+```python
+import requests
 
----
+response = requests.post(
+    "http://localhost:8000/api/tasks/execute",
+    json={
+        "message": "Analyze market trends for Q4",
+        "enable_collaboration": True
+    }
+)
+```
 
-Built with ❤️ using Claude, showcasing the power of multi-agent AI collaboration.
+### Streaming with SSE
+
+```javascript
+const eventSource = new EventSource('/api/tasks/stream');
+eventSource.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  console.log(data);
+};
+```
+
+## Development
+
+### Running Tests
+
+```bash
+# Backend tests
+cd backend
+source venv/bin/activate
+pytest
+
+# Frontend tests
+cd frontend
+npm test
+```
+
+### Database Management
+
+```bash
+# Reset database
+cd backend
+./scripts/reset_database.sh
+
+# Create migration
+alembic revision --autogenerate -m "description"
+
+# Apply migrations
+alembic upgrade head
+```
+
+### Code Quality
+
+```bash
+# Backend linting
+cd backend
+make lint
+
+# Frontend linting
+cd frontend
+npm run lint
+```
+
+## Deployment
+
+### Backend
+
+```bash
+cd backend
+pip install -r requirements.frozen.txt
+uvicorn src.app:app --host 0.0.0.0 --port 8000 --workers 4
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm run build
+# Deploy dist/ directory to static hosting
+```
+
+### Docker (if applicable)
+
+```bash
+docker-compose up -d
+```
+
+## Extending the System
+
+### Adding New Agents
+
+1. Define agent type in `backend/src/core/models.py`
+2. Configure model mapping in `backend/src/agents/agent_factory.py`
+3. Update frontend types in `frontend/src/types/index.ts`
+
+### Adding New Tools
+
+1. Create tool class in `backend/src/tools/`
+2. Implement `BaseTool` interface
+3. Register in `backend/src/tools/registry.py`
+
+### Custom Agent Behavior
+
+Modify system prompts and parameters in:
+- `backend/src/agents/agent_factory.py` - Agent configuration
+- `backend/src/core/orchestrator/task_orchestrator.py` - Orchestration logic
+
+## Troubleshooting
+
+**Database connection errors**: Verify PostgreSQL is running and credentials are correct in `.env`
+
+**API key errors**: Ensure all required API keys are set in backend `.env` file
+
+**Port conflicts**: Change `PORT` in backend `.env` or `vite.config.ts` for frontend
+
+**WebSocket connection issues**: Check CORS settings and ensure backend is running
+
+**Package installation errors**: Use `requirements.frozen.txt` for exact dependency versions
+
+## Performance Considerations
+
+- Database connection pooling configured for 20 concurrent connections
+- Token usage tracking to monitor API costs
+- Caching for conversation history
+- Parallel agent execution for improved response time
+
+## Security
+
+- API keys stored in environment variables
+- CORS configured for specific origins
+- SQL injection prevention via SQLAlchemy ORM
+- Input validation with Pydantic models
+
+## License
+
+MIT License. See LICENSE file for details.
+
+## Support
+
+For issues and feature requests, please use the GitHub issue tracker.
 
