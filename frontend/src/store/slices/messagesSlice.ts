@@ -1,5 +1,6 @@
 /**
  * Messages slice - normalized message state for O(1) lookups.
+ * Now with sessionStorage persistence for conversation continuity.
  */
 import { StateCreator } from 'zustand';
 import { MessagesSlice, RootStore } from '../types';
@@ -7,6 +8,33 @@ import { Message } from '@/types';
 
 const generateMessageId = () => 
   `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+// SessionStorage key for active conversation messages
+const getConversationMessagesKey = (conversationId: string) => 
+  `quorum-conversation-messages-${conversationId}`;
+
+// Save messages to sessionStorage for the active conversation
+const saveMessagesToSession = (conversationId: string, messages: { byId: Record<string, Message>, allIds: string[] }) => {
+  if (!conversationId) return;
+  try {
+    sessionStorage.setItem(
+      getConversationMessagesKey(conversationId),
+      JSON.stringify(messages)
+    );
+  } catch (error) {
+    console.error('Failed to save messages to sessionStorage:', error);
+  }
+};
+
+// Clear messages from sessionStorage for a conversation
+const clearMessagesFromSession = (conversationId: string) => {
+  if (!conversationId) return;
+  try {
+    sessionStorage.removeItem(getConversationMessagesKey(conversationId));
+  } catch (error) {
+    console.error('Failed to clear messages from sessionStorage:', error);
+  }
+};
 
 export const createMessagesSlice: StateCreator<
   RootStore,
@@ -29,15 +57,20 @@ export const createMessagesSlice: StateCreator<
       timestamp: new Date().toISOString(),
     };
 
-    set((state) => ({
-      messages: {
+    set((state) => {
+      const updatedMessages = {
         byId: {
           ...state.messages.byId,
           [id]: newMessage,
         },
         allIds: [...state.messages.allIds, id],
-      },
-    }));
+      };
+
+      // Persist to sessionStorage
+      saveMessagesToSession(state.conversationId, updatedMessages);
+
+      return { messages: updatedMessages };
+    });
 
     return id;
   },
@@ -49,18 +82,21 @@ export const createMessagesSlice: StateCreator<
         return state;
       }
 
-      return {
-        messages: {
-          ...state.messages,
-          byId: {
-            ...state.messages.byId,
-            [id]: {
-              ...state.messages.byId[id],
-              ...updates,
-            },
+      const updatedMessages = {
+        ...state.messages,
+        byId: {
+          ...state.messages.byId,
+          [id]: {
+            ...state.messages.byId[id],
+            ...updates,
           },
         },
       };
+
+      // Persist to sessionStorage
+      saveMessagesToSession(state.conversationId, updatedMessages);
+
+      return { messages: updatedMessages };
     });
   },
 
@@ -72,18 +108,21 @@ export const createMessagesSlice: StateCreator<
         return state;
       }
 
-      return {
-        messages: {
-          ...state.messages,
-          byId: {
-            ...state.messages.byId,
-            [id]: {
-              ...message,
-              content: message.content + content,
-            },
+      const updatedMessages = {
+        ...state.messages,
+        byId: {
+          ...state.messages.byId,
+          [id]: {
+            ...message,
+            content: message.content + content,
           },
         },
       };
+
+      // Persist to sessionStorage
+      saveMessagesToSession(state.conversationId, updatedMessages);
+
+      return { messages: updatedMessages };
     });
   },
 
@@ -152,11 +191,18 @@ export const createMessagesSlice: StateCreator<
   },
 
   clearMessages: () =>
-    set({
-      messages: {
-        byId: {},
-        allIds: [],
-      },
+    set((state) => {
+      // Clear from sessionStorage
+      if (state.conversationId) {
+        clearMessagesFromSession(state.conversationId);
+      }
+
+      return {
+        messages: {
+          byId: {},
+          allIds: [],
+        },
+      };
     }),
 });
 

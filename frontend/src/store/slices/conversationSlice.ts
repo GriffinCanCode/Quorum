@@ -1,9 +1,28 @@
 /**
  * Conversation slice - manages conversation metadata and settings.
+ * Now with sessionStorage restoration support.
  */
 import { StateCreator } from 'zustand';
-import { ConversationSlice, RootStore } from '../types';
+import { ConversationSlice, RootStore, NormalizedMessages } from '../types';
 import { AgentMessage } from '@/types';
+
+// SessionStorage key for active conversation messages
+const getConversationMessagesKey = (conversationId: string) => 
+  `quorum-conversation-messages-${conversationId}`;
+
+// Load messages from sessionStorage for a conversation
+const loadMessagesFromSession = (conversationId: string): NormalizedMessages | null => {
+  if (!conversationId) return null;
+  try {
+    const stored = sessionStorage.getItem(getConversationMessagesKey(conversationId));
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (error) {
+    console.error('Failed to load messages from sessionStorage:', error);
+  }
+  return null;
+};
 
 export const createConversationSlice: StateCreator<
   RootStore,
@@ -19,11 +38,24 @@ export const createConversationSlice: StateCreator<
   agentConversations: [],
 
   // Actions
-  initConversation: (id: string) =>
-    set({
-      conversationId: id,
-      startTime: new Date().toISOString(),
-    }),
+  initConversation: (id: string) => {
+    // Try to restore messages from sessionStorage for this conversation
+    const savedMessages = loadMessagesFromSession(id);
+    
+    if (savedMessages && savedMessages.allIds.length > 0) {
+      console.log(`Restored ${savedMessages.allIds.length} messages from sessionStorage for conversation ${id}`);
+      set({
+        conversationId: id,
+        startTime: new Date().toISOString(),
+        messages: savedMessages,
+      });
+    } else {
+      set({
+        conversationId: id,
+        startTime: new Date().toISOString(),
+      });
+    }
+  },
 
   setCollaboration: (enabled: boolean) =>
     set({ enableCollaboration: enabled }),

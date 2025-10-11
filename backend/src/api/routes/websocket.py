@@ -31,6 +31,17 @@ async def websocket_endpoint(websocket: WebSocket):
     if session_id:
         await token_manager.create_session(session_id)
     
+    # Create a PERSISTENT orchestrator for this WebSocket connection
+    # This ensures conversation context is maintained across multiple messages
+    persistent_orchestrator = TaskOrchestrator(
+        websocket_mode=True,
+        connection_manager=connection_manager,
+        session_id=session_id
+    )
+    
+    # Track active orchestrators by conversation ID for this connection
+    active_conversation_orchestrators = {}
+    
     try:
         # Send welcome message
         await connection_manager.send_personal_message(
@@ -155,15 +166,33 @@ async def websocket_endpoint(websocket: WebSocket):
                                 exc_info=True
                             )
                         
-                        # Create a WebSocket-enabled orchestrator instance
-                        ws_orchestrator = TaskOrchestrator(
-                            websocket_mode=True,
-                            connection_manager=connection_manager,
-                            session_id=session_id
-                        )
+                        # Get or create orchestrator for this conversation
+                        # Reuse existing orchestrator to maintain conversation history in memory
+                        conv_id = ws_message.task.conversation_id or f"conv_{connection_id}"
+                        
+                        if conv_id not in active_conversation_orchestrators:
+                            # Create new orchestrator for this conversation
+                            ws_orchestrator = TaskOrchestrator(
+                                websocket_mode=True,
+                                connection_manager=connection_manager,
+                                session_id=session_id
+                            )
+                            active_conversation_orchestrators[conv_id] = ws_orchestrator
+                            logger.info(
+                                "created_new_orchestrator_for_conversation",
+                                conversation_id=conv_id,
+                                connection_id=connection_id
+                            )
+                        else:
+                            # Reuse existing orchestrator for conversation continuity
+                            ws_orchestrator = active_conversation_orchestrators[conv_id]
+                            logger.info(
+                                "reusing_existing_orchestrator",
+                                conversation_id=conv_id,
+                                connection_id=connection_id
+                            )
                         
                         # Register the task so it can be cancelled
-                        conv_id = ws_message.task.conversation_id or f"conv_{connection_id}"
                         connection_manager.register_task(conv_id, ws_orchestrator)
                         
                         # Auto-subscribe the connection to this conversation to receive events
@@ -195,6 +224,18 @@ async def websocket_endpoint(websocket: WebSocket):
                                         # Also update task registration
                                         connection_manager.unregister_task(conv_id)
                                         connection_manager.register_task(actual_conv_id, ws_orchestrator)
+                                        
+                                        # CRITICAL: Update orchestrator dictionary key
+                                        # Move orchestrator from old key to new key to maintain persistence
+                                        if conv_id in active_conversation_orchestrators:
+                                            active_conversation_orchestrators[actual_conv_id] = active_conversation_orchestrators.pop(conv_id)
+                                            logger.info(
+                                                "orchestrator_key_updated",
+                                                connection_id=connection_id,
+                                                old_key=conv_id,
+                                                new_key=actual_conv_id
+                                            )
+                                        
                                         logger.info(
                                             "resubscribed_to_actual_conversation",
                                             connection_id=connection_id,
@@ -302,6 +343,8 @@ async def websocket_endpoint(websocket: WebSocket):
                             connection_manager.unregister_task(actual_conv_id)
                             # Unsubscribe from the conversation
                             connection_manager.unsubscribe_from_conversation(connection_id, actual_conv_id)
+                            # NOTE: We do NOT remove the orchestrator from active_conversation_orchestrators
+                            # It stays alive for the duration of the WebSocket connection to maintain conversation history
                 
                 elif ws_message.type == "stop":
                     # Stop/cancel an active task
@@ -369,6 +412,15 @@ async def websocket_endpoint(websocket: WebSocket):
         logger.info("websocket_disconnected", connection_id=connection_id, session_id=session_id)
         session_id_to_close = connection_manager.disconnect(connection_id)
         
+        # Clean up all orchestrators for this connection
+        orchestrator_count = len(active_conversation_orchestrators)
+        active_conversation_orchestrators.clear()
+        logger.info(
+            "orchestrators_cleaned_up",
+            connection_id=connection_id,
+            orchestrator_count=orchestrator_count
+        )
+        
         # Close token tracking session and log final statistics
         if session_id_to_close:
             await token_manager.close_session(session_id_to_close)
@@ -395,6 +447,15 @@ async def websocket_endpoint(websocket: WebSocket):
             exc_info=True
         )
         session_id_to_close = connection_manager.disconnect(connection_id)
+        
+        # Clean up all orchestrators for this connection
+        orchestrator_count = len(active_conversation_orchestrators)
+        active_conversation_orchestrators.clear()
+        logger.info(
+            "orchestrators_cleaned_up_on_error",
+            connection_id=connection_id,
+            orchestrator_count=orchestrator_count
+        )
         
         # Close token tracking session even on error
         if session_id_to_close:

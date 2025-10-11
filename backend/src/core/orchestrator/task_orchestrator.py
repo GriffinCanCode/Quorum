@@ -15,6 +15,7 @@ from src.core.models import (
 from src.agents.agent_factory import AgentFactory
 from src.agents.base_agent import BaseAgent
 from src.infrastructure.logging.config import get_logger, bind_context, unbind_context
+from src.infrastructure.database import db_manager, ConversationService
 
 logger = get_logger(__name__)
 
@@ -40,7 +41,99 @@ class TaskOrchestrator:
         self.connection_manager = connection_manager
         self.session_id = session_id
         self.is_cancelled: bool = False
+        # In-memory conversation history for fast access (avoids DB race conditions)
+        self.in_memory_history: List[Dict[str, str]] = []
+        self.history_loaded_from_db: bool = False
         
+    async def _load_conversation_history(self, conversation_id: str) -> List[Dict[str, str]]:
+        """
+        Load previous conversation messages from database.
+        
+        Args:
+            conversation_id: The conversation ID (either UUID or conv_xxx format)
+            
+        Returns:
+            List of message dicts in OpenAI format (role, content)
+        """
+        try:
+            if not conversation_id:
+                return []
+            
+            conv_uuid = None
+            
+            # Handle different conversation ID formats
+            if conversation_id.startswith("conv_"):
+                # For conv_xxx format, look up by task_id
+                # The websocket handler stores conversations with task_id = conversation_id
+                async with db_manager.session() as db_session:
+                    from src.infrastructure.database.repository import ConversationRepository
+                    conversations = await ConversationRepository.get_by_task_id(
+                        db_session,
+                        conversation_id
+                    )
+                    if conversations:
+                        conv_uuid = conversations[0].id
+                        logger.debug(
+                            "conversation_found_by_task_id",
+                            conversation_id=conversation_id,
+                            conv_uuid=str(conv_uuid)
+                        )
+                    else:
+                        logger.debug("no_conversation_found_by_task_id", conversation_id=conversation_id)
+                        return []
+            else:
+                # Try to parse as UUID
+                try:
+                    conv_uuid = uuid.UUID(conversation_id)
+                except (ValueError, AttributeError):
+                    logger.debug("invalid_uuid_format", conversation_id=conversation_id)
+                    return []
+            
+            if not conv_uuid:
+                return []
+            
+            # Fetch conversation with messages from database
+            async with db_manager.session() as db_session:
+                conversation = await ConversationService.get_conversation_with_messages(
+                    db_session,
+                    conv_uuid
+                )
+                
+                if not conversation or not conversation.messages:
+                    logger.debug("no_previous_messages", conversation_id=conversation_id)
+                    return []
+                
+                # Convert database messages to OpenAI format
+                # Filter out agent_conversation messages (they're for synthesis, not main context)
+                history = []
+                for msg in sorted(conversation.messages, key=lambda m: m.created_at):
+                    # Skip agent-to-agent conversation messages
+                    if msg.metadata and msg.metadata.get("message_type") == "agent_conversation":
+                        continue
+                    
+                    history.append({
+                        "role": msg.role,
+                        "content": msg.content
+                    })
+                
+                logger.info(
+                    "conversation_history_loaded",
+                    conversation_id=conversation_id,
+                    message_count=len(history)
+                )
+                return history
+                
+        except Exception as e:
+            logger.error(
+                "failed_to_load_conversation_history",
+                conversation_id=conversation_id,
+                error=str(e),
+                error_type=type(e).__name__,
+                exc_info=True
+            )
+            # Return empty history on error - don't fail the request
+            return []
+    
     async def process_task(
         self,
         task: TaskRequest
@@ -71,6 +164,25 @@ class TaskOrchestrator:
             enable_collaboration=task.enable_collaboration,
             max_sub_agents=task.max_sub_agents
         )
+        
+        # Load conversation history from database ONCE on first initialization
+        # After that, use in-memory history to avoid race conditions
+        if not self.history_loaded_from_db:
+            conversation_history = await self._load_conversation_history(self.conversation_id)
+            self.in_memory_history = conversation_history
+            self.history_loaded_from_db = True
+            logger.info(
+                "conversation_history_loaded_from_db",
+                conversation_id=self.conversation_id,
+                message_count=len(conversation_history)
+            )
+        else:
+            conversation_history = self.in_memory_history
+            logger.info(
+                "using_in_memory_conversation_history",
+                conversation_id=self.conversation_id,
+                message_count=len(conversation_history)
+            )
         
         # Create main agent if needed
         if not self.main_agent:
@@ -103,8 +215,8 @@ class TaskOrchestrator:
             }
             return
         
-        # Prepare messages with tool-calling capability
-        messages = self._prepare_main_agent_messages(task.message)
+        # Prepare messages with conversation history
+        messages = self._prepare_main_agent_messages(task.message, conversation_history)
         
         # Check if main agent wants to delegate to sub-agents
         if task.enable_collaboration and not self.is_cancelled:
@@ -112,7 +224,8 @@ class TaskOrchestrator:
             logger.debug("requesting_delegation_plan")
             delegation_response = await self._get_delegation_plan(
                 task.message,
-                task.max_sub_agents
+                task.max_sub_agents,
+                conversation_history
             )
             
             if delegation_response.get("delegate"):
@@ -140,7 +253,7 @@ class TaskOrchestrator:
                     yield conv_event
                 
                 # Synthesize final response from conversation
-                messages = self._prepare_synthesis_from_conversation(task.message)
+                messages = self._prepare_synthesis_from_conversation(task.message, conversation_history)
         
         # Phase 2: Main agent provides final response (streaming)
         yield {
@@ -180,6 +293,15 @@ class TaskOrchestrator:
                 response_length=len(accumulated_response)
             )
             
+            # Add current exchange to in-memory history for next turn
+            self.in_memory_history.append({"role": "user", "content": task.message})
+            self.in_memory_history.append({"role": "assistant", "content": accumulated_response})
+            logger.debug(
+                "in_memory_history_updated",
+                conversation_id=self.conversation_id,
+                total_messages=len(self.in_memory_history)
+            )
+            
             # Final completion event
             yield {
                 "type": "complete",
@@ -208,10 +330,16 @@ class TaskOrchestrator:
     async def _get_delegation_plan(
         self,
         user_message: str,
-        max_sub_agents: int
+        max_sub_agents: int,
+        conversation_history: List[Dict[str, str]]
     ) -> Dict[str, Any]:
         """
         Ask main agent to create a delegation plan.
+        
+        Args:
+            user_message: Current user message
+            max_sub_agents: Maximum number of sub-agents
+            conversation_history: Previous conversation messages
         
         Returns:
             Dictionary with delegation decision and sub-queries
@@ -240,10 +368,12 @@ Respond with JSON ONLY in this format:
 
 Use agent_type values exactly as shown above. Maximum {max_sub_agents} sub-agents. Only delegate if it will significantly improve the response."""
         
+        # Include conversation history in delegation decision
         messages = [
-            {"role": "system", "content": self.main_agent.config.system_prompt},
-            {"role": "user", "content": delegation_prompt}
+            {"role": "system", "content": self.main_agent.config.system_prompt}
         ]
+        messages.extend(conversation_history)
+        messages.append({"role": "user", "content": delegation_prompt})
         
         try:
             response = await self.main_agent.get_complete_response(messages)
@@ -359,12 +489,29 @@ Use agent_type values exactly as shown above. Maximum {max_sub_agents} sub-agent
             "content": response
         }
     
-    def _prepare_main_agent_messages(self, user_message: str) -> List[Dict[str, str]]:
-        """Prepare messages for the main agent."""
-        return [
-            {"role": "system", "content": self.main_agent.config.system_prompt},
-            {"role": "user", "content": user_message}
+    def _prepare_main_agent_messages(
+        self,
+        user_message: str,
+        conversation_history: List[Dict[str, str]]
+    ) -> List[Dict[str, str]]:
+        """
+        Prepare messages for the main agent with conversation history.
+        
+        Args:
+            user_message: Current user message
+            conversation_history: Previous conversation messages
+            
+        Returns:
+            List of messages including system prompt, history, and current message
+        """
+        messages = [
+            {"role": "system", "content": self.main_agent.config.system_prompt}
         ]
+        # Add conversation history
+        messages.extend(conversation_history)
+        # Add current user message
+        messages.append({"role": "user", "content": user_message})
+        return messages
     
     def _prepare_synthesis_messages(
         self,
@@ -564,9 +711,19 @@ Be constructive and build on the conversation."""
     
     def _prepare_synthesis_from_conversation(
         self,
-        user_message: str
+        user_message: str,
+        conversation_history: List[Dict[str, str]]
     ) -> List[Dict[str, str]]:
-        """Prepare messages for final synthesis from the full conversation."""
+        """
+        Prepare messages for final synthesis from the full conversation.
+        
+        Args:
+            user_message: Current user message
+            conversation_history: Previous conversation messages
+            
+        Returns:
+            List of messages including history and agent discussion for synthesis
+        """
         synthesis_context = "Agent Discussion:\n\n"
         
         for conv_round in self.conversation_rounds:
@@ -589,10 +746,15 @@ Now provide a comprehensive, well-structured response that:
 
 Focus on being helpful and thorough."""
         
-        return [
-            {"role": "system", "content": self.main_agent.config.system_prompt},
-            {"role": "user", "content": synthesis_prompt}
+        # Build messages with conversation history + synthesis prompt
+        messages = [
+            {"role": "system", "content": self.main_agent.config.system_prompt}
         ]
+        # Add conversation history for context
+        messages.extend(conversation_history)
+        # Add synthesis prompt
+        messages.append({"role": "user", "content": synthesis_prompt})
+        return messages
     
     def cancel(self):
         """Cancel the current task execution."""
@@ -604,11 +766,14 @@ Focus on being helpful and thorough."""
         logger.info(
             "orchestrator_reset",
             had_main_agent=self.main_agent is not None,
-            active_sub_agents_count=len(self.active_sub_agents)
+            active_sub_agents_count=len(self.active_sub_agents),
+            in_memory_history_size=len(self.in_memory_history)
         )
         self.main_agent = None
         self.active_sub_agents.clear()
         self.conversation_id = None
         self.conversation_rounds.clear()
         self.is_cancelled = False
+        self.in_memory_history.clear()
+        self.history_loaded_from_db = False
 
