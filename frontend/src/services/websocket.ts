@@ -77,6 +77,16 @@ export class WebSocketService {
         this.ws.onmessage = (event) => {
           try {
             const message = JSON.parse(event.data);
+            
+            // Log all messages except ping/pong
+            if (message.type !== 'pong' && message.type !== 'ping') {
+              logger.info(`📨 WS Message received: ${message.type}`, {
+                type: message.type,
+                hasContent: !!message.content,
+                hasFinalResponse: !!message.finalResponse,
+              });
+            }
+            
             this.handleMessage(message);
           } catch (error) {
             logger.error('Failed to parse WebSocket message', error as Error, {

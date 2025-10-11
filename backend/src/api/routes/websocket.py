@@ -177,12 +177,30 @@ async def websocket_endpoint(websocket: WebSocket):
                         # Track streaming response and agent messages
                         accumulated_response = ""
                         agent_messages = []
+                        actual_conv_id = conv_id  # Will be updated from init event
                         
                         try:
                             # Process task and stream events via WebSocket
                             async for event_data in ws_orchestrator.process_task(ws_message.task):
                                 # Track important events for database storage
                                 event_type = event_data.get("type")
+                                
+                                # On init event, get the actual conversation ID and resubscribe
+                                if event_type == "init" and event_data.get("conversationId"):
+                                    actual_conv_id = event_data["conversationId"]
+                                    # Unsubscribe from old ID and subscribe to actual ID
+                                    if actual_conv_id != conv_id:
+                                        connection_manager.unsubscribe_from_conversation(connection_id, conv_id)
+                                        connection_manager.subscribe_to_conversation(connection_id, actual_conv_id)
+                                        # Also update task registration
+                                        connection_manager.unregister_task(conv_id)
+                                        connection_manager.register_task(actual_conv_id, ws_orchestrator)
+                                        logger.info(
+                                            "resubscribed_to_actual_conversation",
+                                            connection_id=connection_id,
+                                            old_conv_id=conv_id,
+                                            new_conv_id=actual_conv_id
+                                        )
                                 
                                 # Accumulate final response
                                 if event_type == "stream":
@@ -202,7 +220,18 @@ async def websocket_endpoint(websocket: WebSocket):
                                     })
                                 
                                 # Send event to subscribed clients (or just this connection)
-                                event_conv_id = event_data.get("conversationId") or conv_id
+                                # Use actual_conv_id (the real conversation ID from the orchestrator)
+                                event_conv_id = event_data.get("conversationId") or actual_conv_id
+                                
+                                # Log complete event specifically
+                                if event_type == "complete":
+                                    logger.info(
+                                        "broadcasting_complete_event",
+                                        event_conv_id=event_conv_id,
+                                        has_final_response=bool(event_data.get("finalResponse")),
+                                        connection_id=connection_id,
+                                        actual_conv_id=actual_conv_id
+                                    )
                                 
                                 if event_conv_id:
                                     # Broadcast to all subscribers of this conversation
@@ -266,13 +295,13 @@ async def websocket_endpoint(websocket: WebSocket):
                             logger.info(
                                 "websocket_task_completed",
                                 connection_id=connection_id,
-                                conversation_id=conv_id
+                                conversation_id=actual_conv_id
                             )
                         finally:
-                            # Unregister the task when it's done
-                            connection_manager.unregister_task(conv_id)
+                            # Unregister the task when it's done (use actual_conv_id)
+                            connection_manager.unregister_task(actual_conv_id)
                             # Unsubscribe from the conversation
-                            connection_manager.unsubscribe_from_conversation(connection_id, conv_id)
+                            connection_manager.unsubscribe_from_conversation(connection_id, actual_conv_id)
                 
                 elif ws_message.type == "stop":
                     # Stop/cancel an active task

@@ -42,12 +42,17 @@ export const createStreamSlice: StateCreator<
    * This is the event sourcing pattern - events drive all state changes.
    */
   handleStreamEvent: (event: StreamEvent) => {
-    logger.debug('Processing stream event', {
+    const state = get();
+    const currentProcessingState = state.isProcessing;
+    
+    logger.info(`🔄 Stream event: ${event.type}`, {
       type: event.type,
       agentId: event.agentId,
+      currentlyProcessing: currentProcessingState,
+      isStreaming: state.isStreaming,
+      timestamp: new Date().toISOString(),
     });
 
-    const state = get();
     const timestamp = new Date().toISOString();
 
     // Update last event tracking
@@ -171,10 +176,11 @@ export const createStreamSlice: StateCreator<
         break;
 
       case 'complete':
-        logger.info('Stream completed', {
+        logger.info('Stream completed - SETTING PROCESSING TO FALSE', {
           agentId: event.agentId,
           messageCount: state.messages.allIds.length,
           finalResponse: event.finalResponse?.length,
+          timestamp: new Date().toISOString(),
         });
 
         // Set streaming states to false first
@@ -185,6 +191,10 @@ export const createStreamSlice: StateCreator<
         
         // Then set processing to false (important: do this after streaming state is cleared)
         state.setProcessing(false);
+        
+        logger.info('Processing state updated to false', {
+          isProcessing: get().isProcessing,
+        });
 
         // Mark all agents as complete (not just the primary agent)
         state.agents.allIds.forEach(agentId => {
