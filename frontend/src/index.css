@@ -1,6 +1,7 @@
 /* Import custom component styles - must come before @tailwind directives */
 @import './styles/chatHistory.css';
 @import './styles/toolUsage.css';
+@import './styles/agentToolDisplay.css';
 @import './styles/settings.css';
 
 @tailwind base;

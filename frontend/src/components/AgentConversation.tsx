@@ -5,6 +5,8 @@
 import { memo, useState, useCallback, useEffect } from 'react';
 import { ConversationRound, AgentType } from '@/types';
 import { MarkdownRenderer } from './MarkdownRenderer';
+import { AgentToolDisplay } from './AgentToolDisplay';
+import { parseToolUsage } from '@/utils/toolParser';
 
 // Simple time formatter
 const formatTime = (timestamp: string): string => {
@@ -209,26 +211,33 @@ function AgentConversationComponent({ rounds }: AgentConversationProps) {
                   className={`round-card-content ${isExpanded ? 'round-card-content-visible' : ''}`}
                 >
                   <div className="round-messages">
-                    {round.messages.map((message, msgIndex) => (
-                      <div key={`${message.messageId}-${msgIndex}`} className="agent-message">
-                        <div className="agent-message-header">
-                          <div className="agent-message-header-left">
-                            <div className={`agent-avatar ${agentBgColors[message.agentType]}`}>
-                              {agentNames[message.agentType].charAt(0)}
+                    {round.messages.map((message, msgIndex) => {
+                      const { cleanContent, toolUsages } = parseToolUsage(message.content);
+                      
+                      return (
+                        <div key={`${message.messageId}-${msgIndex}`} className="agent-message">
+                          <div className="agent-message-header">
+                            <div className="agent-message-header-left">
+                              <div className={`agent-avatar ${agentBgColors[message.agentType]}`}>
+                                {agentNames[message.agentType].charAt(0)}
+                              </div>
+                              <span className={`agent-name ${agentColors[message.agentType]}`}>
+                                {agentNames[message.agentType]}
+                              </span>
                             </div>
-                            <span className={`agent-name ${agentColors[message.agentType]}`}>
-                              {agentNames[message.agentType]}
+                            <span className="message-time">
+                              {formatTime(message.timestamp)}
                             </span>
                           </div>
-                          <span className="message-time">
-                            {formatTime(message.timestamp)}
-                          </span>
+                          <div className="agent-message-content">
+                            <MarkdownRenderer content={cleanContent} />
+                            {toolUsages.length > 0 && (
+                              <AgentToolDisplay toolUsages={toolUsages} />
+                            )}
+                          </div>
                         </div>
-                        <div className="agent-message-content">
-                          <MarkdownRenderer content={message.content} />
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               </div>
