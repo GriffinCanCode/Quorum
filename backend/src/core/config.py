@@ -13,9 +13,7 @@ class Settings(BaseSettings):
     """Application settings with environment variable support."""
     
     # API Keys
-    anthropic_api_key: str = ""
-    openai_api_key: str = ""
-    google_api_key: str = ""
+    openrouter_api_key: str = ""
     
     # Server Configuration
     host: str = "0.0.0.0"
@@ -72,17 +70,9 @@ class Settings(BaseSettings):
             env_values = dotenv_values(env_file_path)
             
             # Override if current values are dummy values or short placeholders
-            if self.anthropic_api_key and len(self.anthropic_api_key) < 50:
-                if 'ANTHROPIC_API_KEY' in env_values and env_values['ANTHROPIC_API_KEY']:
-                    object.__setattr__(self, 'anthropic_api_key', env_values['ANTHROPIC_API_KEY'])
-            
-            if self.openai_api_key and len(self.openai_api_key) < 50:
-                if 'OPENAI_API_KEY' in env_values and env_values['OPENAI_API_KEY']:
-                    object.__setattr__(self, 'openai_api_key', env_values['OPENAI_API_KEY'])
-                    
-            if self.google_api_key and len(self.google_api_key) < 30:
-                if 'GOOGLE_API_KEY' in env_values and env_values['GOOGLE_API_KEY']:
-                    object.__setattr__(self, 'google_api_key', env_values['GOOGLE_API_KEY'])
+            if self.openrouter_api_key and len(self.openrouter_api_key) < 30:
+                if 'OPENROUTER_API_KEY' in env_values and env_values['OPENROUTER_API_KEY']:
+                    object.__setattr__(self, 'openrouter_api_key', env_values['OPENROUTER_API_KEY'])
     
     @property
     def cors_origins_list(self) -> List[str]:

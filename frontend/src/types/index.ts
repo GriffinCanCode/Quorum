@@ -6,8 +6,7 @@
 export type AgentType = 
   | 'claude-sonnet-4.5'    // Main orchestrator (maps to claude-3-5-sonnet)
   | 'claude-sonnet-3.5'    // Sub-agent (maps to claude-3-5-sonnet)
-  | 'gpt-5'                // GPT sub-agent (maps to gpt-4o)
-  | 'gemini-2.5-pro';      // Gemini sub-agent (maps to gemini-2.0-flash)
+  | 'gpt-5';               // GPT sub-agent (maps to gpt-4o)
 
 export type AgentStatus = 
   | 'idle'

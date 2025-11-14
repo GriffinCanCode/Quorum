@@ -1,6 +1,6 @@
 # NoOversight - Multi-Agent AI Platform
 
-A production-ready platform enabling multiple AI agents (Claude, GPT, Gemini) to collaborate on complex tasks. The system uses an intelligent orchestrator to delegate subtasks to specialized agents, synthesizing their responses into coherent solutions.
+A production-ready platform enabling multiple AI agents (Claude, GPT, Gemini) to collaborate on complex tasks via OpenRouter's unified API. The system uses an intelligent orchestrator to delegate subtasks to specialized agents, synthesizing their responses into coherent solutions.
 
 ## Overview
 
@@ -10,7 +10,7 @@ NoOversight implements a lightweight, streaming-first architecture for multi-age
 
 **Backend**
 - FastAPI with async support
-- LiteLLM for unified model access
+- OpenRouter for unified model access (Claude, GPT, Gemini, etc.)
 - PostgreSQL for conversation persistence
 - WebSocket and SSE for real-time streaming
 - Tool system with web search capabilities
@@ -27,7 +27,7 @@ NoOversight implements a lightweight, streaming-first architecture for multi-age
 - Python 3.11 or higher
 - Node.js 18 or higher
 - PostgreSQL 13 or higher
-- API keys: Anthropic, OpenAI, Google
+- OpenRouter API key (get one at https://openrouter.ai/keys)
 
 ## Installation
 
@@ -87,9 +87,7 @@ make test     # Run test suites
 **Backend** (`.env` in backend directory):
 ```env
 # API Keys
-ANTHROPIC_API_KEY=your_anthropic_key
-OPENAI_API_KEY=your_openai_key
-GOOGLE_API_KEY=your_google_key
+OPENROUTER_API_KEY=your_openrouter_key
 
 # Database
 DATABASE_URL=postgresql://user:password@localhost:5432/nooversight

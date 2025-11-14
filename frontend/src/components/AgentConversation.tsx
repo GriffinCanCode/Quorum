@@ -31,21 +31,18 @@ const agentColors: Record<AgentType, string> = {
   'claude-sonnet-4.5': 'text-purple-600',
   'claude-sonnet-3.5': 'text-blue-600',
   'gpt-5': 'text-green-600',
-  'gemini-2.5-pro': 'text-orange-600',
 };
 
 const agentBgColors: Record<AgentType, string> = {
   'claude-sonnet-4.5': 'bg-purple-100',
   'claude-sonnet-3.5': 'bg-blue-100',
   'gpt-5': 'bg-green-100',
-  'gemini-2.5-pro': 'bg-orange-100',
 };
 
 const agentNames: Record<AgentType, string> = {
   'claude-sonnet-4.5': 'Claude Main',
   'claude-sonnet-3.5': 'Claude',
   'gpt-5': 'GPT',
-  'gemini-2.5-pro': 'Gemini',
 };
 
 function AgentConversationComponent({ rounds }: AgentConversationProps) {

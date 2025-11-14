@@ -39,15 +39,9 @@ export function Settings({ onClose }: SettingsProps) {
   
   // Local form state
   const [formData, setFormData] = useState<SettingsType>(settings);
-  const [showApiKeys, setShowApiKeys] = useState({
-    anthropic: false,
-    openai: false,
-    google: false,
-  });
+  const [showApiKey, setShowApiKey] = useState(false);
   const [validationState, setValidationState] = useState({
-    anthropic: null as boolean | null,
-    openai: null as boolean | null,
-    google: null as boolean | null,
+    openrouter: null as boolean | null,
   });
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [hasChanges, setHasChanges] = useState(false);
@@ -84,11 +78,9 @@ export function Settings({ onClose }: SettingsProps) {
   // Validate API keys on change
   useEffect(() => {
     setValidationState({
-      anthropic: formData.anthropicApiKey ? validateApiKey('anthropic', formData.anthropicApiKey) : null,
-      openai: formData.openaiApiKey ? validateApiKey('openai', formData.openaiApiKey) : null,
-      google: formData.googleApiKey ? validateApiKey('google', formData.googleApiKey) : null,
+      openrouter: formData.openrouterApiKey ? validateApiKey('openrouter', formData.openrouterApiKey) : null,
     });
-  }, [formData.anthropicApiKey, formData.openaiApiKey, formData.googleApiKey, validateApiKey]);
+  }, [formData.openrouterApiKey, validateApiKey]);
 
   const handleInputChange = (field: keyof SettingsType, value: string | number | boolean) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -169,12 +161,12 @@ export function Settings({ onClose }: SettingsProps) {
         {/* Scrollable Content Area */}
         <div className="settings-content">
           {/* Warning Banner - Show at Top for Visibility */}
-          {validationState.anthropic === false || validationState.openai === false || validationState.google === false ? (
+          {validationState.openrouter === false ? (
             <div className="settings-warning-banner">
               <AlertTriangle className="settings-warning-icon" />
               <div className="settings-warning-text">
                 <strong className="font-semibold">Invalid API Key Format</strong>
-                <p className="mt-0.5">One or more API keys appear to be invalid. Please check the format and try again.</p>
+                <p className="mt-0.5">The OpenRouter API key appears to be invalid. Please check the format and try again.</p>
               </div>
             </div>
           ) : null}
@@ -192,28 +184,28 @@ export function Settings({ onClose }: SettingsProps) {
             </div>
             
             <div className="settings-section-content">
-              {/* Anthropic API Key */}
+              {/* OpenRouter API Key */}
               <div className="settings-field">
                 <label className="settings-label settings-label-required">
-                  Anthropic API Key
+                  OpenRouter API Key
                   <span className="settings-required-badge">Required</span>
                 </label>
                 <div className="settings-input-wrapper">
                   <input
-                    type={showApiKeys.anthropic ? 'text' : 'password'}
-                    value={formData.anthropicApiKey}
-                    onChange={(e) => handleInputChange('anthropicApiKey', e.target.value)}
-                    placeholder="sk-ant-xxxxx"
+                    type={showApiKey ? 'text' : 'password'}
+                    value={formData.openrouterApiKey}
+                    onChange={(e) => handleInputChange('openrouterApiKey', e.target.value)}
+                    placeholder="sk-or-xxxxx"
                     className="settings-input"
                   />
                   <div className="settings-input-actions">
-                    {getValidationIcon(validationState.anthropic)}
+                    {getValidationIcon(validationState.openrouter)}
                     <button
                       type="button"
-                      onClick={() => setShowApiKeys((prev) => ({ ...prev, anthropic: !prev.anthropic }))}
+                      onClick={() => setShowApiKey(!showApiKey)}
                       className="settings-input-button"
                     >
-                      {showApiKeys.anthropic ? (
+                      {showApiKey ? (
                         <EyeOff className="w-4 h-4" />
                       ) : (
                         <Eye className="w-4 h-4" />
@@ -222,98 +214,14 @@ export function Settings({ onClose }: SettingsProps) {
                   </div>
                 </div>
                 <p className="settings-help-text">
-                  For Claude models. Get your key from{' '}
+                  API key for all AI models (Claude, GPT, Gemini). Get your key from{' '}
                   <a 
-                    href="https://console.anthropic.com/" 
+                    href="https://openrouter.ai/keys" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="settings-link"
                   >
-                    console.anthropic.com
-                  </a>
-                </p>
-              </div>
-
-              {/* OpenAI API Key */}
-              <div className="settings-field">
-                <label className="settings-label settings-label-required">
-                  OpenAI API Key
-                  <span className="settings-required-badge">Required</span>
-                </label>
-                <div className="settings-input-wrapper">
-                  <input
-                    type={showApiKeys.openai ? 'text' : 'password'}
-                    value={formData.openaiApiKey}
-                    onChange={(e) => handleInputChange('openaiApiKey', e.target.value)}
-                    placeholder="sk-xxxxx"
-                    className="settings-input"
-                  />
-                  <div className="settings-input-actions">
-                    {getValidationIcon(validationState.openai)}
-                    <button
-                      type="button"
-                      onClick={() => setShowApiKeys((prev) => ({ ...prev, openai: !prev.openai }))}
-                      className="settings-input-button"
-                    >
-                      {showApiKeys.openai ? (
-                        <EyeOff className="w-4 h-4" />
-                      ) : (
-                        <Eye className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-                <p className="settings-help-text">
-                  For GPT models. Get your key from{' '}
-                  <a 
-                    href="https://platform.openai.com/api-keys" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="settings-link"
-                  >
-                    platform.openai.com
-                  </a>
-                </p>
-              </div>
-
-              {/* Google API Key */}
-              <div className="settings-field">
-                <label className="settings-label settings-label-required">
-                  Google API Key
-                  <span className="settings-required-badge">Required</span>
-                </label>
-                <div className="settings-input-wrapper">
-                  <input
-                    type={showApiKeys.google ? 'text' : 'password'}
-                    value={formData.googleApiKey}
-                    onChange={(e) => handleInputChange('googleApiKey', e.target.value)}
-                    placeholder="xxxxx"
-                    className="settings-input"
-                  />
-                  <div className="settings-input-actions">
-                    {getValidationIcon(validationState.google)}
-                    <button
-                      type="button"
-                      onClick={() => setShowApiKeys((prev) => ({ ...prev, google: !prev.google }))}
-                      className="settings-input-button"
-                    >
-                      {showApiKeys.google ? (
-                        <EyeOff className="w-4 h-4" />
-                      ) : (
-                        <Eye className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-                <p className="settings-help-text">
-                  For Gemini models. Get your key from{' '}
-                  <a 
-                    href="https://makersuite.google.com/app/apikey" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="settings-link"
-                  >
-                    makersuite.google.com
+                    openrouter.ai/keys
                   </a>
                 </p>
               </div>

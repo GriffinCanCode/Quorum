@@ -154,13 +154,19 @@ export const createStreamSlice: StateCreator<
         break;
 
       case 'stream':
-        if (event.content && !event.isFinal) {
+        if (event.content) {
           const { streamingMessageId } = get();
 
           // Check if we should append to existing message or create new one
           if (streamingMessageId && state.messages.byId[streamingMessageId]) {
             // Append to existing streaming message
             state.appendToMessage(streamingMessageId, event.content);
+            
+            logger.debug('Appended stream chunk to message', {
+              messageId: streamingMessageId,
+              chunkLength: event.content.length,
+              isFinal: event.isFinal,
+            });
           } else {
             // Create new assistant message
             const newMessageId = state.addMessage({
@@ -171,6 +177,11 @@ export const createStreamSlice: StateCreator<
             
             // Track this as the current streaming message
             set({ streamingMessageId: newMessageId });
+            
+            logger.debug('Created new streaming message', {
+              messageId: newMessageId,
+              chunkLength: event.content.length,
+            });
           }
         }
         break;

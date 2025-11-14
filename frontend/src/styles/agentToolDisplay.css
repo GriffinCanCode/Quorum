@@ -44,10 +44,50 @@
 
 /* Status Badge - Minimal */
 .tool-status-badge {
-  @apply text-xs font-medium px-2 py-0.5 rounded;
+  @apply text-xs font-medium px-2 py-0.5 rounded flex items-center gap-1;
   background: oklch(0.24 0.015 150 / 0.5);
   color: oklch(0.70 0.15 150);
   border: 1px solid oklch(0.35 0.020 150 / 0.4);
+}
+
+/* Status variants */
+.tool-status-preparing {
+  background: oklch(0.24 0.015 250 / 0.5);
+  color: oklch(0.70 0.15 250);
+  border-color: oklch(0.35 0.020 250 / 0.4);
+}
+
+.tool-status-executed {
+  background: oklch(0.24 0.015 150 / 0.5);
+  color: oklch(0.70 0.15 150);
+  border-color: oklch(0.35 0.020 150 / 0.4);
+}
+
+.tool-status-pending {
+  background: oklch(0.24 0.015 50 / 0.5);
+  color: oklch(0.70 0.15 50);
+  border-color: oklch(0.35 0.020 50 / 0.4);
+}
+
+.tool-status-failed {
+  background: oklch(0.24 0.015 0 / 0.5);
+  color: oklch(0.70 0.15 0);
+  border-color: oklch(0.35 0.020 0 / 0.4);
+}
+
+/* Spinner animation for loading state */
+.tool-status-spinner {
+  @apply inline-block;
+  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 /* Result Count */

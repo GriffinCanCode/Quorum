@@ -58,7 +58,18 @@ async def websocket_endpoint(websocket: WebSocket):
         
         while True:
             # Receive message from client
-            data = await websocket.receive_json()
+            try:
+                data = await websocket.receive_json()
+            except RuntimeError as e:
+                # Handle "WebSocket is not connected" error as a normal disconnect
+                if "not connected" in str(e).lower():
+                    logger.info(
+                        "websocket_connection_closed_by_client",
+                        connection_id=connection_id,
+                        session_id=session_id
+                    )
+                    break  # Exit the loop gracefully
+                raise  # Re-raise if it's a different RuntimeError
             
             try:
                 # Parse as WebSocketMessage
@@ -410,6 +421,19 @@ async def websocket_endpoint(websocket: WebSocket):
     
     except WebSocketDisconnect:
         logger.info("websocket_disconnected", connection_id=connection_id, session_id=session_id)
+    
+    except Exception as e:
+        logger.error(
+            "websocket_connection_error",
+            connection_id=connection_id,
+            session_id=session_id,
+            error=str(e),
+            error_type=type(e).__name__,
+            exc_info=True
+        )
+    
+    finally:
+        # Always perform cleanup, regardless of how we exited the loop
         session_id_to_close = connection_manager.disconnect(connection_id)
         
         # Clean up all orchestrators for this connection
@@ -422,42 +446,6 @@ async def websocket_endpoint(websocket: WebSocket):
         )
         
         # Close token tracking session and log final statistics
-        if session_id_to_close:
-            await token_manager.close_session(session_id_to_close)
-            session_stats = await token_manager.get_session_summary(session_id_to_close)
-            if session_stats:
-                logger.info(
-                    "session_token_usage_summary",
-                    session_id=session_id_to_close,
-                    total_cost=session_stats.get("total_cost", 0),
-                    total_tokens=session_stats.get("total_tokens", 0),
-                    total_requests=session_stats.get("total_requests", 0),
-                    duration_seconds=session_stats.get("duration_seconds", 0),
-                    usage_by_model=session_stats.get("usage_by_model", {}),
-                    usage_by_agent=session_stats.get("usage_by_agent", {})
-                )
-    
-    except Exception as e:
-        logger.error(
-            "websocket_connection_error",
-            connection_id=connection_id,
-            session_id=session_id,
-            error=str(e),
-            error_type=type(e).__name__,
-            exc_info=True
-        )
-        session_id_to_close = connection_manager.disconnect(connection_id)
-        
-        # Clean up all orchestrators for this connection
-        orchestrator_count = len(active_conversation_orchestrators)
-        active_conversation_orchestrators.clear()
-        logger.info(
-            "orchestrators_cleaned_up_on_error",
-            connection_id=connection_id,
-            orchestrator_count=orchestrator_count
-        )
-        
-        # Close token tracking session even on error
         if session_id_to_close:
             await token_manager.close_session(session_id_to_close)
             session_stats = await token_manager.get_session_summary(session_id_to_close)

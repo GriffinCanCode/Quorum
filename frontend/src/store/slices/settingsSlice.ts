@@ -10,9 +10,7 @@ import { StateCreator } from 'zustand';
 
 export interface Settings {
   // API Keys
-  anthropicApiKey: string;
-  openaiApiKey: string;
-  googleApiKey: string;
+  openrouterApiKey: string;
   
   // Server Configuration
   backendUrl: string;
@@ -40,7 +38,7 @@ export interface SettingsSlice {
   resetSettings: () => void;
   loadSettings: () => void;
   saveSettings: (settings: Settings) => void;
-  validateApiKey: (provider: 'anthropic' | 'openai' | 'google', key: string) => boolean;
+  validateApiKey: (provider: 'openrouter', key: string) => boolean;
 }
 
 // ============================================================================
@@ -49,9 +47,7 @@ export interface SettingsSlice {
 
 export const defaultSettings: Settings = {
   // API Keys - empty by default
-  anthropicApiKey: '',
-  openaiApiKey: '',
-  googleApiKey: '',
+  openrouterApiKey: '',
   
   // Server Configuration
   backendUrl: 'http://localhost:8000',
@@ -106,9 +102,7 @@ const saveToStorage = (settings: Settings): void => {
   try {
     const toStore = {
       ...settings,
-      anthropicApiKey: obfuscate(settings.anthropicApiKey),
-      openaiApiKey: obfuscate(settings.openaiApiKey),
-      googleApiKey: obfuscate(settings.googleApiKey),
+      openrouterApiKey: obfuscate(settings.openrouterApiKey),
     };
     localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(toStore));
   } catch (error) {
@@ -127,9 +121,7 @@ const loadFromStorage = (): Settings | null => {
     const parsed = JSON.parse(stored);
     return {
       ...parsed,
-      anthropicApiKey: deobfuscate(parsed.anthropicApiKey || ''),
-      openaiApiKey: deobfuscate(parsed.openaiApiKey || ''),
-      googleApiKey: deobfuscate(parsed.googleApiKey || ''),
+      openrouterApiKey: deobfuscate(parsed.openrouterApiKey || ''),
     };
   } catch (error) {
     console.error('Failed to load settings from localStorage:', error);
@@ -140,19 +132,13 @@ const loadFromStorage = (): Settings | null => {
 /**
  * Validate API key format based on provider.
  */
-const validateApiKeyFormat = (provider: 'anthropic' | 'openai' | 'google', key: string): boolean => {
+const validateApiKeyFormat = (provider: 'openrouter', key: string): boolean => {
   if (!key) return false;
   
   switch (provider) {
-    case 'anthropic':
-      // Anthropic keys start with 'sk-ant-' and are typically 100+ characters
-      return key.startsWith('sk-ant-') && key.length > 50;
-    case 'openai':
-      // OpenAI keys start with 'sk-' and are typically 50+ characters
-      return key.startsWith('sk-') && key.length > 20;
-    case 'google':
-      // Google API keys are typically 39 characters
-      return key.length >= 30;
+    case 'openrouter':
+      // OpenRouter keys start with 'sk-or-' and are typically 50+ characters
+      return key.startsWith('sk-or-') && key.length > 20;
     default:
       return false;
   }
@@ -211,7 +197,7 @@ export const createSettingsSlice: StateCreator<SettingsSlice> = (set, get) => ({
   /**
    * Validate API key format.
    */
-  validateApiKey: (provider: 'anthropic' | 'openai' | 'google', key: string): boolean => {
+  validateApiKey: (provider: 'anthropic' | 'openai', key: string): boolean => {
     return validateApiKeyFormat(provider, key);
   },
 });

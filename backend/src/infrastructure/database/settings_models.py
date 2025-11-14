@@ -26,9 +26,7 @@ class AppSettings(Base):
     )
     
     # API Keys (encrypted in production)
-    anthropic_api_key: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    openai_api_key: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    google_api_key: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    openrouter_api_key: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     
     # Server Configuration
     backend_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)

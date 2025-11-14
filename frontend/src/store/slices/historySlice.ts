@@ -144,9 +144,20 @@ export const createHistorySlice: StateCreator<
       return;
     }
 
-    // This will trigger a conversation load
-    // The actual implementation will depend on your backend API
     console.log('Loading conversation:', conversation.title);
+    
+    // Save current conversation before switching
+    get().saveCurrentConversation();
+    
+    // Reset the current state
+    get().clearMessages();
+    get().clearAgents();
+    get().endStream();
+    get().setProcessing(false);
+    get().clearError();
+    
+    // Initialize the conversation (this will restore messages from sessionStorage)
+    get().initConversation(conversationId);
   },
 
   // Create a conversation snapshot from current state

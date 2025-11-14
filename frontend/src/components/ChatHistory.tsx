@@ -2,8 +2,8 @@
  * ChatHistory - Redesigned sidebar with modern UX/UI principles
  * Features: Clean hierarchy, smooth interactions, enhanced accessibility
  */
-import { memo, useMemo, useState } from 'react';
-import { Search, Clock, MessageSquare, Star, Trash2, X, MoreVertical, Archive } from 'lucide-react';
+import { memo, useMemo, useState, useEffect } from 'react';
+import { Search, Clock, MessageSquare, Star, Trash2, X, MoreVertical, Archive, Plus } from 'lucide-react';
 import { useStore } from '@/store';
 import { ConversationHistory } from '@/store/types';
 import { AgentType } from '@/types';
@@ -14,14 +14,12 @@ const agentColors: Record<AgentType, string> = {
   'claude-sonnet-4.5': 'agent-badge-purple',
   'claude-sonnet-3.5': 'agent-badge-blue',
   'gpt-5': 'agent-badge-green',
-  'gemini-2.5-pro': 'agent-badge-orange',
 };
 
 const agentInitials: Record<AgentType, string> = {
   'claude-sonnet-4.5': 'C+',
   'claude-sonnet-3.5': 'C',
   'gpt-5': 'G',
-  'gemini-2.5-pro': 'Gm',
 };
 
 // Format timestamp for display
@@ -117,9 +115,6 @@ const ConversationCard = memo(({ conversation, isActive, onToggleStar, onDelete,
         <div className="history-card-header">
           <div className="history-card-title-section">
             <div className="history-card-title">{conversation.title}</div>
-            {conversation.assistantPreview && (
-              <div className="history-card-preview">{conversation.assistantPreview}</div>
-            )}
           </div>
           
           {/* Quick Actions */}
@@ -213,6 +208,7 @@ function ChatHistoryComponent() {
   const removeFromHistory = useStore((state) => state.removeFromHistory);
   const loadConversation = useStore((state) => state.loadConversation);
   const clearHistory = useStore((state) => state.clearHistory);
+  const reset = useStore((state) => state.reset);
 
   // Filter conversations based on search query
   const filteredConversations = useMemo(() => {
@@ -261,12 +257,41 @@ function ChatHistoryComponent() {
     loadConversation(conversationId);
   };
 
+  const handleNewChat = () => {
+    reset();
+    setSearchQuery('');
+  };
+
+  // Keyboard shortcut: Cmd/Ctrl + K for new chat
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        handleNewChat();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const hasSearchQuery = searchQuery.trim().length > 0;
 
   return (
     <aside className="history-sidebar-permanent" role="complementary" aria-label="Conversation history">
       {/* Header */}
       <div className="history-header">
+        {/* New Chat Button */}
+        <button
+          onClick={handleNewChat}
+          className="w-full mb-2.5 px-3 py-2 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-lg font-medium text-sm transition-all duration-150 flex items-center justify-center gap-2 border border-blue-500/30 hover:border-blue-500/40 focus:outline-none focus:ring-1 focus:ring-blue-500/50"
+          aria-label="Start new chat"
+          title="New Chat (⌘K / Ctrl+K)"
+        >
+          <Plus className="w-4 h-4" strokeWidth={2} />
+          <span>New Chat</span>
+        </button>
+
         {/* Enhanced Search */}
         <div className={`history-search-container ${isSearchFocused ? 'focused' : ''} ${hasSearchQuery ? 'has-value' : ''}`}>
           <Search className="history-search-icon" />

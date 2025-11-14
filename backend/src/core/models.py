@@ -19,7 +19,6 @@ class AgentType(str, Enum):
     CLAUDE_MAIN = "claude-sonnet-4.5"
     CLAUDE_SUB = "claude-sonnet-3.5"
     GPT5 = "gpt-5"
-    GEMINI_PRO = "gemini-2.5-pro"
 
 
 class AgentStatus(str, Enum):

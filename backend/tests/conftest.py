@@ -6,9 +6,7 @@ from unittest.mock import Mock, AsyncMock, patch
 import os
 
 # Set test environment variables
-os.environ["ANTHROPIC_API_KEY"] = "test-key-anthropic"
-os.environ["OPENAI_API_KEY"] = "test-key-openai"
-os.environ["GOOGLE_API_KEY"] = "test-key-google"
+os.environ["OPENROUTER_API_KEY"] = "test-key-openrouter"
 
 from src.core.models import AgentType, AgentConfig, TaskRequest, StreamChunk
 from src.agents.base_agent import BaseAgent

@@ -348,10 +348,11 @@ class TaskOrchestrator:
 
 User request: {user_message}
 
-Available agents:
-- claude-sonnet-3.5: Detailed analysis and research (Claude sub-agent)
-- gpt-5: Creative thinking and problem-solving (GPT agent)
-- gemini-2.5-pro: Technical analysis and data processing (Gemini agent)
+Available agents (use EXACT agent_type values):
+- "claude-sonnet-3.5": Detailed analysis and research (Claude sub-agent)
+- "gpt-5": Creative thinking and problem-solving (GPT agent)
+
+CRITICAL: You MUST use these exact agent_type values. Do NOT use "gpt-4", "gpt-4o", or any other variations.
 
 Respond with JSON ONLY in this format:
 {{
@@ -366,7 +367,8 @@ Respond with JSON ONLY in this format:
     ]
 }}
 
-Use agent_type values exactly as shown above. Maximum {max_sub_agents} sub-agents. Only delegate if it will significantly improve the response."""
+Valid agent_type values: "claude-sonnet-3.5" or "gpt-5" ONLY.
+Maximum {max_sub_agents} sub-agents. Only delegate if it will significantly improve the response."""
         
         # Include conversation history in delegation decision
         messages = [
@@ -415,8 +417,38 @@ Use agent_type values exactly as shown above. Maximum {max_sub_agents} sub-agent
         """
         tasks = []
         
+        # Mapping for common agent type mistakes
+        agent_type_aliases = {
+            "gpt-4": AgentType.GPT5,  # Map gpt-4 to gpt-5 (our valid type)
+            "gpt-4o": AgentType.GPT5,
+            "gpt4": AgentType.GPT5,
+            "gpt5": AgentType.GPT5,
+        }
+        
         for query_spec in sub_queries:
-            agent_type = AgentType(query_spec["agent_type"])
+            agent_type_str = query_spec["agent_type"]
+            
+            # Try to parse agent type with fallback for common mistakes
+            try:
+                agent_type = AgentType(agent_type_str)
+            except ValueError:
+                # Check if there's an alias mapping
+                if agent_type_str in agent_type_aliases:
+                    agent_type = agent_type_aliases[agent_type_str]
+                    logger.warning(
+                        "agent_type_alias_used",
+                        requested=agent_type_str,
+                        mapped_to=agent_type.value
+                    )
+                else:
+                    logger.error(
+                        "invalid_agent_type",
+                        agent_type=agent_type_str,
+                        valid_types=[t.value for t in AgentType]
+                    )
+                    # Skip this invalid agent type
+                    continue
+            
             logger.debug(
                 "creating_sub_agent",
                 agent_type=agent_type.value,
@@ -538,8 +570,38 @@ Focus on creating a coherent, well-organized answer that directly addresses the 
     
     async def _create_sub_agents(self, sub_queries: List[Dict[str, Any]]):
         """Create sub-agents without immediately executing them."""
+        # Mapping for common agent type mistakes
+        agent_type_aliases = {
+            "gpt-4": AgentType.GPT5,
+            "gpt-4o": AgentType.GPT5,
+            "gpt4": AgentType.GPT5,
+            "gpt5": AgentType.GPT5,
+        }
+        
         for query_spec in sub_queries:
-            agent_type = AgentType(query_spec["agent_type"])
+            agent_type_str = query_spec["agent_type"]
+            
+            # Try to parse agent type with fallback for common mistakes
+            try:
+                agent_type = AgentType(agent_type_str)
+            except ValueError:
+                # Check if there's an alias mapping
+                if agent_type_str in agent_type_aliases:
+                    agent_type = agent_type_aliases[agent_type_str]
+                    logger.warning(
+                        "agent_type_alias_used_in_conversation",
+                        requested=agent_type_str,
+                        mapped_to=agent_type.value
+                    )
+                else:
+                    logger.error(
+                        "invalid_agent_type_in_conversation",
+                        agent_type=agent_type_str,
+                        valid_types=[t.value for t in AgentType]
+                    )
+                    # Skip this invalid agent type
+                    continue
+            
             logger.debug(
                 "creating_sub_agent_for_conversation",
                 agent_type=agent_type.value,

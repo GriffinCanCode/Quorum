@@ -3,10 +3,9 @@
  * Manages streaming communication with the backend via WebSocket.
  */
 import { useEffect, useState } from 'react';
-import { RotateCcw, AlertCircle, Wifi, WifiOff, Settings as SettingsIcon } from 'lucide-react';
+import { AlertCircle, Wifi, WifiOff, Settings as SettingsIcon } from 'lucide-react';
 import { useStore } from '@/store';
 import { selectMessages, selectAgents } from '@/store/selectors';
-import { APIService } from '@/services/api';
 import { ChatWindow } from '@/components/ChatWindow';
 import { ChatInput } from '@/components/ChatInput';
 import { AgentPanel } from '@/components/AgentPanel';
@@ -46,7 +45,6 @@ function App() {
   const setError = useStore((state) => state.setError);
   const clearError = useStore((state) => state.clearError);
   const addMessage = useStore((state) => state.addMessage);
-  const reset = useStore((state) => state.reset);
   const loadSettings = useStore((state) => state.loadSettings);
   
   // Load settings on mount
@@ -137,17 +135,6 @@ function App() {
     }
   };
 
-  const handleReset = async () => {
-    try {
-      logger.info('Resetting conversation');
-      await APIService.resetConversation();
-      reset();
-      logger.info('Conversation reset successfully');
-    } catch (err) {
-      logger.error('Error resetting conversation', err as Error);
-    }
-  };
-
   return (
     <ErrorBoundary>
       <div className="h-screen flex flex-col overflow-hidden">
@@ -186,15 +173,6 @@ function App() {
               >
                 <SettingsIcon className="w-3.5 h-3.5" />
                 <span>Settings</span>
-              </button>
-              <button
-                onClick={handleReset}
-                disabled={isProcessing}
-                className="btn-minimal flex items-center gap-2 hover-lift press-effect"
-                title="Reset conversation"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Reset</span>
               </button>
             </div>
           </div>

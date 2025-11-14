@@ -10,9 +10,7 @@ from pydantic import BaseModel, Field
 
 class ModelProvider(str, Enum):
     """Supported model providers."""
-    OPENAI = "openai"
-    ANTHROPIC = "anthropic"
-    GOOGLE = "google"
+    OPENROUTER = "openrouter"
 
 
 class ModelPricing(BaseModel):
@@ -49,69 +47,63 @@ class ModelPricing(BaseModel):
         return input_cost + output_cost
 
 
-# Current pricing as of October 2025
-# Source: Official API documentation and pricing pages
+# Current pricing as of November 2024
+# Source: OpenRouter API documentation and pricing pages
+# All models accessed via OpenRouter unified API
 MODEL_PRICING_CONFIG: Dict[str, ModelPricing] = {
-    # OpenAI Models
-    "gpt-4o": ModelPricing(
-        model_id="gpt-4o",
-        provider=ModelProvider.OPENAI,
+    # OpenAI Models via OpenRouter
+    "openai/gpt-4o": ModelPricing(
+        model_id="openai/gpt-4o",
+        provider=ModelProvider.OPENROUTER,
         input_cost_per_1k=0.0025,  # $2.50 per 1M tokens
         output_cost_per_1k=0.010,  # $10.00 per 1M tokens
         context_window=128_000
     ),
-    "gpt-4o-mini": ModelPricing(
-        model_id="gpt-4o-mini",
-        provider=ModelProvider.OPENAI,
+    "openai/gpt-4o-mini": ModelPricing(
+        model_id="openai/gpt-4o-mini",
+        provider=ModelProvider.OPENROUTER,
         input_cost_per_1k=0.00015,  # $0.15 per 1M tokens
         output_cost_per_1k=0.0006,  # $0.60 per 1M tokens
         context_window=128_000
     ),
-    "gpt-4-turbo": ModelPricing(
-        model_id="gpt-4-turbo",
-        provider=ModelProvider.OPENAI,
+    "openai/gpt-4-turbo": ModelPricing(
+        model_id="openai/gpt-4-turbo",
+        provider=ModelProvider.OPENROUTER,
         input_cost_per_1k=0.01,  # $10.00 per 1M tokens
         output_cost_per_1k=0.03,  # $30.00 per 1M tokens
         context_window=128_000
     ),
     
-    # Anthropic Models
-    "claude-3-5-sonnet-20241022": ModelPricing(
-        model_id="claude-3-5-sonnet-20241022",
-        provider=ModelProvider.ANTHROPIC,
+    # Anthropic Models via OpenRouter
+    "anthropic/claude-sonnet-4-20250514": ModelPricing(
+        model_id="anthropic/claude-sonnet-4-20250514",
+        provider=ModelProvider.OPENROUTER,
         input_cost_per_1k=0.003,  # $3.00 per 1M tokens
         output_cost_per_1k=0.015,  # $15.00 per 1M tokens
         context_window=200_000
     ),
-    "claude-3-opus": ModelPricing(
-        model_id="claude-3-opus",
-        provider=ModelProvider.ANTHROPIC,
+    "anthropic/claude-3.5-sonnet": ModelPricing(
+        model_id="anthropic/claude-3.5-sonnet",
+        provider=ModelProvider.OPENROUTER,
+        input_cost_per_1k=0.003,  # $3.00 per 1M tokens
+        output_cost_per_1k=0.015,  # $15.00 per 1M tokens
+        context_window=200_000
+    ),
+    "anthropic/claude-3-opus": ModelPricing(
+        model_id="anthropic/claude-3-opus",
+        provider=ModelProvider.OPENROUTER,
         input_cost_per_1k=0.015,  # $15.00 per 1M tokens
         output_cost_per_1k=0.075,  # $75.00 per 1M tokens
         context_window=200_000
     ),
     
-    # Google Models
-    "gemini-2.0-flash-exp": ModelPricing(
-        model_id="gemini-2.0-flash-exp",
-        provider=ModelProvider.GOOGLE,
-        input_cost_per_1k=0.0003,  # $0.30 per 1M tokens (Flash pricing)
-        output_cost_per_1k=0.0025,  # $2.50 per 1M tokens
-        context_window=1_000_000
-    ),
-    "gemini-2.5-flash": ModelPricing(
-        model_id="gemini-2.5-flash",
-        provider=ModelProvider.GOOGLE,
-        input_cost_per_1k=0.0003,  # $0.30 per 1M tokens
-        output_cost_per_1k=0.0025,  # $2.50 per 1M tokens
-        context_window=1_000_000
-    ),
-    "gemini-2.5-pro": ModelPricing(
-        model_id="gemini-2.5-pro",
-        provider=ModelProvider.GOOGLE,
-        input_cost_per_1k=0.00125,  # $1.25 per 1M tokens
-        output_cost_per_1k=0.01,  # $10.00 per 1M tokens
-        context_window=200_000
+    # Google Models via OpenRouter
+    "google/gemini-pro": ModelPricing(
+        model_id="google/gemini-pro",
+        provider=ModelProvider.OPENROUTER,
+        input_cost_per_1k=0.000125,  # $0.125 per 1M tokens
+        output_cost_per_1k=0.000375,  # $0.375 per 1M tokens
+        context_window=128_000
     ),
 }
 

@@ -21,9 +21,7 @@ class TestSettings:
         """Test settings load from environment."""
         # Environment is already set in conftest.py
         settings = Settings()
-        assert settings.anthropic_api_key == "test-key-anthropic"
-        assert settings.openai_api_key == "test-key-openai"
-        assert settings.google_api_key == "test-key-google"
+        assert settings.openrouter_api_key == "test-key-openrouter"
     
     def test_cors_origins_list(self):
         """Test CORS origins parsing."""

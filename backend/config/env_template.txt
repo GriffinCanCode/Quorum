@@ -1,7 +1,5 @@
 # API Keys - Replace with your actual keys
-ANTHROPIC_API_KEY=sk-ant-xxxxx
-OPENAI_API_KEY=sk-xxxxx
-GOOGLE_API_KEY=xxxxx
+OPENROUTER_API_KEY=sk-or-xxxxx
 
 # Server Configuration
 HOST=0.0.0.0

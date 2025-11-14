@@ -27,9 +27,7 @@ class SettingsRepository:
         if app_settings is None:
             # Create default settings from environment variables
             app_settings = AppSettings(
-                anthropic_api_key=env_settings.anthropic_api_key or "",
-                openai_api_key=env_settings.openai_api_key or "",
-                google_api_key=env_settings.google_api_key or "",
+                openrouter_api_key=env_settings.openrouter_api_key or "",
                 backend_url=f"http://{env_settings.host}:{env_settings.port}",
                 max_concurrent_agents=env_settings.max_concurrent_agents,
                 agent_timeout=env_settings.agent_timeout,
@@ -57,9 +55,7 @@ class SettingsRepository:
     @staticmethod
     async def update(
         session: AsyncSession,
-        anthropic_api_key: Optional[str] = None,
-        openai_api_key: Optional[str] = None,
-        google_api_key: Optional[str] = None,
+        openrouter_api_key: Optional[str] = None,
         backend_url: Optional[str] = None,
         max_concurrent_agents: Optional[int] = None,
         agent_timeout: Optional[int] = None,
@@ -75,12 +71,8 @@ class SettingsRepository:
         app_settings = await SettingsRepository.get_or_create(session)
         
         # Update fields if provided
-        if anthropic_api_key is not None:
-            app_settings.anthropic_api_key = anthropic_api_key
-        if openai_api_key is not None:
-            app_settings.openai_api_key = openai_api_key
-        if google_api_key is not None:
-            app_settings.google_api_key = google_api_key
+        if openrouter_api_key is not None:
+            app_settings.openrouter_api_key = openrouter_api_key
         if backend_url is not None:
             app_settings.backend_url = backend_url
         if max_concurrent_agents is not None:
@@ -135,13 +127,9 @@ class SettingsRepository:
         
         if include_api_keys:
             # Mask API keys for security (show only first/last few chars)
-            data["anthropic_api_key"] = _mask_api_key(app_settings.anthropic_api_key)
-            data["openai_api_key"] = _mask_api_key(app_settings.openai_api_key)
-            data["google_api_key"] = _mask_api_key(app_settings.google_api_key)
+            data["openrouter_api_key"] = _mask_api_key(app_settings.openrouter_api_key)
         else:
-            data["anthropic_api_key"] = app_settings.anthropic_api_key
-            data["openai_api_key"] = app_settings.openai_api_key
-            data["google_api_key"] = app_settings.google_api_key
+            data["openrouter_api_key"] = app_settings.openrouter_api_key
         
         return data
 

@@ -9,9 +9,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 export interface SettingsResponse {
   id: string;
-  anthropicApiKey: string;
-  openaiApiKey: string;
-  googleApiKey: string;
+  openrouterApiKey: string;
   backendUrl: string | null;
   maxConcurrentAgents: number;
   agentTimeout: number;
@@ -27,9 +25,7 @@ export interface SettingsResponse {
 }
 
 export interface UpdateSettingsRequest {
-  anthropicApiKey?: string;
-  openaiApiKey?: string;
-  googleApiKey?: string;
+  openrouterApiKey?: string;
   backendUrl?: string;
   maxConcurrentAgents?: number;
   agentTimeout?: number;
@@ -44,9 +40,7 @@ export interface UpdateSettingsRequest {
 
 export interface ApiKeysValidation {
   configured: {
-    anthropic: boolean;
-    openai: boolean;
-    google: boolean;
+    openrouter: boolean;
   };
   allConfigured: boolean;
 }
@@ -94,9 +88,7 @@ function toSnakeCase(obj: any): any {
  */
 function mapToSettings(response: SettingsResponse): Settings {
   return {
-    anthropicApiKey: response.anthropicApiKey || '',
-    openaiApiKey: response.openaiApiKey || '',
-    googleApiKey: response.googleApiKey || '',
+    openrouterApiKey: response.openrouterApiKey || '',
     backendUrl: response.backendUrl || 'http://localhost:8000',
     maxConcurrentAgents: response.maxConcurrentAgents,
     agentTimeout: response.agentTimeout,

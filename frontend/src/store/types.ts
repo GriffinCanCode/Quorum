@@ -112,9 +112,7 @@ export interface StreamSlice {
 }
 
 export interface Settings {
-  anthropicApiKey: string;
-  openaiApiKey: string;
-  googleApiKey: string;
+  openrouterApiKey: string;
   backendUrl: string;
   maxConcurrentAgents: number;
   agentTimeout: number;
@@ -132,7 +130,7 @@ export interface SettingsSlice {
   resetSettings: () => void;
   loadSettings: () => void;
   saveSettings: (settings: Settings) => void;
-  validateApiKey: (provider: 'anthropic' | 'openai' | 'google', key: string) => boolean;
+  validateApiKey: (provider: 'openrouter', key: string) => boolean;
 }
 
 export interface HistorySlice {

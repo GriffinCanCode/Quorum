@@ -6,7 +6,7 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 BACKEND_DIR="$PROJECT_ROOT/backend"
 VENV_DIR="$BACKEND_DIR/venv"
 PID_FILE="$BACKEND_DIR/.backend.pid"
-FOREGROUND_MODE="${1:-background}"
+FOREGROUND_MODE="${1:-foreground}"
 
 echo "🚀 Starting Quorum Backend..."
 

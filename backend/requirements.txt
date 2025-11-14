@@ -4,11 +4,9 @@ uvicorn[standard]==0.30.6
 pydantic==2.11.10
 pydantic-settings==2.6.1
 
-# AI/LLM Integration
+# AI/LLM Integration (via OpenRouter)
 langchain-core==0.3.79
 langchain-openai==0.3.35
-langchain-anthropic==0.3.22
-langchain-google-genai==2.0.8
 
 # Async & Streaming
 aiohttp==3.10.9

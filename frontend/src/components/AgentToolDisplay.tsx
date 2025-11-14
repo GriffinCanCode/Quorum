@@ -33,9 +33,17 @@ const ToolUsageCard: React.FC<ToolUsageCardProps> = ({ tool }) => {
   const parsedResults = parseToolResult(tool.result);
 
   const getStatusText = () => {
+    if (tool.isPartial) return 'Preparing...';
     if (tool.result) return 'Executed';
     if (tool.result === undefined) return 'Pending';
     return 'Failed';
+  };
+
+  const getStatusClass = () => {
+    if (tool.isPartial) return 'tool-status-preparing';
+    if (tool.result) return 'tool-status-executed';
+    if (tool.result === undefined) return 'tool-status-pending';
+    return 'tool-status-failed';
   };
 
   return (
@@ -50,14 +58,19 @@ const ToolUsageCard: React.FC<ToolUsageCardProps> = ({ tool }) => {
         <div className="agent-tool-title">
           <span className="tool-name-text">{formatToolName(tool.toolName)}</span>
           <div className="tool-metadata">
-            <span className="tool-status-badge">{getStatusText()}</span>
+            <span className={`tool-status-badge ${getStatusClass()}`}>
+              {tool.isPartial && (
+                <span className="tool-status-spinner" aria-label="Loading">⋯</span>
+              )}
+              {getStatusText()}
+            </span>
             {parsedResults && parsedResults.length > 0 && (
               <span className="tool-result-count">{parsedResults.length} results</span>
             )}
           </div>
         </div>
         
-        {tool.result && (
+        {tool.result && !tool.isPartial && (
           <button
             onClick={() => setIsExpanded(!isExpanded)}
             className="agent-tool-expand-btn"

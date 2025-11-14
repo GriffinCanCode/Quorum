@@ -16,14 +16,12 @@ const AGENT_DISPLAY_NAMES: Record<AgentType, string> = {
   'claude-sonnet-4.5': 'Claude 4.5',
   'claude-sonnet-3.5': 'Claude 3.5',
   'gpt-5': 'GPT-5',
-  'gemini-2.5-pro': 'Gemini 2.5',
 };
 
 const AGENT_COLORS: Record<AgentType, string> = {
   'claude-sonnet-4.5': 'bg-accent-500',
   'claude-sonnet-3.5': 'bg-primary-500',
   'gpt-5': 'bg-success-500',
-  'gemini-2.5-pro': 'bg-warning-500',
 };
 
 export const AgentCard = React.forwardRef<HTMLDivElement, AgentCardProps>(({ agent }, ref) => {

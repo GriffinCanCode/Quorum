@@ -16,9 +16,7 @@ router = APIRouter(prefix="/api/settings", tags=["settings"])
 
 class SettingsUpdateRequest(BaseModel):
     """Request model for updating settings."""
-    anthropic_api_key: Optional[str] = None
-    openai_api_key: Optional[str] = None
-    google_api_key: Optional[str] = None
+    openrouter_api_key: Optional[str] = None
     backend_url: Optional[str] = None
     max_concurrent_agents: Optional[int] = None
     agent_timeout: Optional[int] = None
@@ -34,9 +32,7 @@ class SettingsUpdateRequest(BaseModel):
 class SettingsResponse(BaseModel):
     """Response model for settings."""
     id: str
-    anthropic_api_key: str
-    openai_api_key: str
-    google_api_key: str
+    openrouter_api_key: str
     backend_url: Optional[str]
     max_concurrent_agents: int
     agent_timeout: int
@@ -70,9 +66,7 @@ async def get_settings(
         
         # If mask_keys is False, return full API keys (for authenticated requests only)
         if not mask_keys:
-            settings_dict["anthropic_api_key"] = app_settings.anthropic_api_key or ""
-            settings_dict["openai_api_key"] = app_settings.openai_api_key or ""
-            settings_dict["google_api_key"] = app_settings.google_api_key or ""
+            settings_dict["openrouter_api_key"] = app_settings.openrouter_api_key or ""
         
         logger.info("get_settings_success")
         return settings_dict
@@ -120,9 +114,7 @@ async def validate_api_keys(db: AsyncSession = Depends(get_db)):
         app_settings = await SettingsRepository.get_or_create(db)
         
         validation = {
-            "anthropic": bool(app_settings.anthropic_api_key and len(app_settings.anthropic_api_key) > 10),
-            "openai": bool(app_settings.openai_api_key and len(app_settings.openai_api_key) > 10),
-            "google": bool(app_settings.google_api_key and len(app_settings.google_api_key) > 10),
+            "openrouter": bool(app_settings.openrouter_api_key and len(app_settings.openrouter_api_key) > 10),
         }
         
         return {

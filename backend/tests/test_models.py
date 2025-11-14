@@ -18,7 +18,6 @@ class TestEnums:
         assert AgentType.CLAUDE_MAIN.value == "claude-sonnet-4.5"
         assert AgentType.CLAUDE_SUB.value == "claude-sonnet-3.5"
         assert AgentType.GPT5.value == "gpt-5"
-        assert AgentType.GEMINI_PRO.value == "gemini-2.5-pro"
     
     def test_agent_status_values(self):
         """Test AgentStatus enum values."""
@@ -73,7 +72,7 @@ class TestAgentConfig:
         config = AgentConfig(
             agent_id="test_agent",
             agent_type=AgentType.CLAUDE_MAIN,
-            model="anthropic/claude-sonnet-4-5",
+            model="anthropic/claude-sonnet-4-20250514",
             temperature=0.8,
             max_tokens=2000
         )

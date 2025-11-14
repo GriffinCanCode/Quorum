@@ -11,12 +11,13 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 
-# Add backend/src to path so we can import our models
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+# Add backend directory to path so we can import our models
+backend_path = str(Path(__file__).parent.parent)
+sys.path.insert(0, backend_path)
 
 # Import models and settings
-from infrastructure.database.models import Base
-from core.config import settings
+from src.infrastructure.database.models import Base
+from src.core.config import settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

@@ -564,6 +564,12 @@
     box-shadow: 
       0 0 0 0 oklch(0.60 0.12 250 / 0),
       0 1px 3px 0 rgb(0 0 0 / 0.3);
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  
+  .input-field-clean::-webkit-scrollbar {
+    display: none;
   }
   
   .input-field-clean:hover {

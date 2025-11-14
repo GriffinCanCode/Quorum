@@ -8,6 +8,23 @@ import { AgentState } from '@/types';
 const generateAgentId = (type: string) =>
   `${type}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
+// SessionStorage key for agents
+const getConversationAgentListKey = (conversationId: string) =>
+  `quorum-conversation-agent-list-${conversationId}`;
+
+// Save agents to sessionStorage
+const saveAgentsToSession = (conversationId: string, agents: any) => {
+  if (!conversationId) return;
+  try {
+    sessionStorage.setItem(
+      getConversationAgentListKey(conversationId),
+      JSON.stringify(agents)
+    );
+  } catch (error) {
+    console.error('Failed to save agents to sessionStorage:', error);
+  }
+};
+
 export const createAgentsSlice: StateCreator<
   RootStore,
   [],
@@ -40,15 +57,20 @@ export const createAgentsSlice: StateCreator<
       startTime: new Date().toISOString(),
     };
 
-    set((state) => ({
-      agents: {
+    set((state) => {
+      const updatedAgents = {
         byId: {
           ...state.agents.byId,
           [id]: newAgent,
         },
         allIds: [...state.agents.allIds, id],
-      },
-    }));
+      };
+      
+      // Save to sessionStorage
+      saveAgentsToSession(state.conversationId, updatedAgents);
+      
+      return { agents: updatedAgents };
+    });
 
     return id;
   },
@@ -70,36 +92,53 @@ export const createAgentsSlice: StateCreator<
           : {}),
       };
 
-      return {
-        agents: {
-          ...state.agents,
-          byId: {
-            ...state.agents.byId,
-            [id]: updatedAgent,
-          },
+      const updatedAgents = {
+        ...state.agents,
+        byId: {
+          ...state.agents.byId,
+          [id]: updatedAgent,
         },
       };
+      
+      // Save to sessionStorage
+      saveAgentsToSession(state.conversationId, updatedAgents);
+
+      return { agents: updatedAgents };
     });
   },
 
   removeAgent: (id) => {
     set((state) => {
       const { [id]: removed, ...remainingById } = state.agents.byId;
-      return {
-        agents: {
-          byId: remainingById,
-          allIds: state.agents.allIds.filter((agentId) => agentId !== id),
-        },
+      const updatedAgents = {
+        byId: remainingById,
+        allIds: state.agents.allIds.filter((agentId) => agentId !== id),
       };
+      
+      // Save to sessionStorage
+      saveAgentsToSession(state.conversationId, updatedAgents);
+      
+      return { agents: updatedAgents };
     });
   },
 
   clearAgents: () =>
-    set({
-      agents: {
-        byId: {},
-        allIds: [],
-      },
+    set((state) => {
+      // Clear from sessionStorage
+      if (state.conversationId) {
+        try {
+          sessionStorage.removeItem(getConversationAgentListKey(state.conversationId));
+        } catch (error) {
+          console.error('Failed to clear agents from sessionStorage:', error);
+        }
+      }
+      
+      return {
+        agents: {
+          byId: {},
+          allIds: [],
+        },
+      };
     }),
 
   setAgentStatus: (id, status) => {

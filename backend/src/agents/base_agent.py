@@ -9,8 +9,6 @@ from datetime import datetime
 
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from langchain_openai import ChatOpenAI
-from langchain_anthropic import ChatAnthropic
-from langchain_google_genai import ChatGoogleGenerativeAI
 
 from src.core.models import AgentConfig, AgentType, AgentStatus, StreamChunk
 from src.infrastructure.logging.config import get_logger
@@ -19,10 +17,6 @@ from src.core.settings_service import get_settings_service
 from src.infrastructure.tracking.callback_handler import TokenTrackingCallback
 from src.infrastructure.tracking.token_manager import get_token_manager
 from src.tools.registry import ToolRegistry
-
-# Fix for Pydantic 2.11+ compatibility with langchain-anthropic
-# This resolves forward reference issues with BaseCache
-ChatAnthropic.model_rebuild()
 
 logger = get_logger(__name__)
 
@@ -61,12 +55,8 @@ class BaseAgent:
             is_streaming=True
         )
         
-        # Store API keys - will be initialized during first use
-        self._api_keys = {
-            "openai": None,
-            "anthropic": None,
-            "google": None
-        }
+        # Store API key - will be initialized during first use
+        self._api_key = None
         
         self._chat_model = None
         self._chat_model_streaming = None
@@ -90,16 +80,9 @@ class BaseAgent:
             
         model_name = self.config.model
         
-        # Get API keys from settings service (database first, then environment)
-        openai_key = await self._settings_service.get_openai_api_key()
-        anthropic_key = await self._settings_service.get_anthropic_api_key()
-        google_key = await self._settings_service.get_google_api_key()
-        
-        self._api_keys = {
-            "openai": openai_key,
-            "anthropic": anthropic_key,
-            "google": google_key
-        }
+        # Get API key from settings service (database first, then environment)
+        openrouter_key = await self._settings_service.get_openrouter_api_key()
+        self._api_key = openrouter_key
         
         # Choose appropriate callback based on whether we're streaming
         callback = self._token_callback_streaming if use_streaming_callback else self._token_callback_non_streaming
@@ -112,53 +95,17 @@ class BaseAgent:
             # Convert to LangChain format
             tool_kwargs["tools"] = tool_schemas
         
-        # Determine provider from model name and create appropriate model
-        chat_model = None
-        if model_name.startswith("gpt-") or model_name.startswith("o1-") or "openai" in model_name.lower():
-            chat_model = ChatOpenAI(
-                model=model_name,
-                temperature=self.config.temperature,
-                max_tokens=self.config.max_tokens,
-                api_key=openai_key,
-                callbacks=callbacks,
-                **tool_kwargs
-            )
-        elif model_name.startswith("claude-") or "anthropic" in model_name.lower():
-            chat_model = ChatAnthropic(
-                model=model_name,
-                temperature=self.config.temperature,
-                max_tokens=self.config.max_tokens,
-                api_key=anthropic_key,
-                callbacks=callbacks,
-                **tool_kwargs
-            )
-        elif model_name.startswith("gemini/") or model_name.startswith("gemini-") or "gemini" in model_name.lower():
-            # Extract the actual model name (remove "gemini/" prefix if present)
-            actual_model = model_name.replace("gemini/", "")
-            chat_model = ChatGoogleGenerativeAI(
-                model=actual_model,
-                temperature=self.config.temperature,
-                max_tokens=self.config.max_tokens,
-                google_api_key=google_key,
-                callbacks=callbacks,
-                **tool_kwargs
-            )
-        else:
-            # Default to OpenAI for unknown models
-            logger.warning(
-                "unknown_model_provider",
-                model=model_name,
-                agent_id=self.config.agent_id,
-                message="Defaulting to OpenAI provider"
-            )
-            chat_model = ChatOpenAI(
-                model=model_name,
-                temperature=self.config.temperature,
-                max_tokens=self.config.max_tokens,
-                api_key=openai_key,
-                callbacks=callbacks,
-                **tool_kwargs
-            )
+        # Use OpenRouter API (OpenAI-compatible interface)
+        # OpenRouter supports all providers through a unified endpoint
+        chat_model = ChatOpenAI(
+            model=model_name,
+            temperature=self.config.temperature,
+            max_tokens=self.config.max_tokens,
+            api_key=openrouter_key,
+            base_url="https://openrouter.ai/api/v1",
+            callbacks=callbacks,
+            **tool_kwargs
+        )
         
         # Cache the model appropriately
         if use_streaming_callback:
@@ -180,13 +127,10 @@ class BaseAgent:
     def _get_provider_name(self) -> str:
         """Get the provider name for this agent's model."""
         model_name = self.config.model.lower()
-        if "gpt" in model_name or "o1" in model_name or "openai" in model_name:
-            return "openai"
-        elif "claude" in model_name or "anthropic" in model_name:
-            return "anthropic"
-        elif "gemini" in model_name:
-            return "google"
-        return "unknown"
+        # Extract provider from OpenRouter model format (provider/model)
+        if "/" in model_name:
+            return model_name.split("/")[0]
+        return "openrouter"
         
     async def stream_response(
         self,

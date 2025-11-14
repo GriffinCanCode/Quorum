@@ -16,12 +16,12 @@ logger = get_logger(__name__)
 class AgentFactory:
     """Factory for creating configured agents."""
     
-    # Map agent types to LiteLLM model identifiers
+    # Map agent types to OpenRouter model identifiers
+    # Format: provider/model-name
     MODEL_MAP = {
-        AgentType.CLAUDE_MAIN: "claude-3-5-sonnet-20241022",  # Latest Claude 3.5 Sonnet (Oct 2024)
-        AgentType.CLAUDE_SUB: "claude-3-5-sonnet-20241022",   # Latest Claude 3.5 Sonnet (Oct 2024)
-        AgentType.GPT5: "gpt-4o",                              # GPT-4o (latest OpenAI model)
-        AgentType.GEMINI_PRO: "gemini/gemini-2.0-flash-exp",  # Gemini 2.0 Flash
+        AgentType.CLAUDE_MAIN: "anthropic/claude-sonnet-4-20250514",  # Claude Sonnet 4 (latest and most capable)
+        AgentType.CLAUDE_SUB: "anthropic/claude-3.5-sonnet",           # Claude 3.5 Sonnet (faster, cost-effective)
+        AgentType.GPT5: "openai/gpt-4o",                               # GPT-4o (latest OpenAI model)
     }
     
     # System prompts for different agent types
@@ -61,7 +61,6 @@ Use the web_search tool when you need current, real-time information:
 When you need help, you can request assistance from:
 - Claude sub-agents (for detailed analysis)
 - GPT agents (for creative tasks)
-- Gemini agents (for multimodal tasks)
 
 Be strategic about when to involve other agents and when to use tools.""",
         
@@ -84,16 +83,6 @@ You can use the web_search tool to access current information:
 - Syntax: web_search(query="specific search terms", num_results=5)
 - Users can see your research process in the tool usage panel
 - Integrate search results naturally into your responses""",
-        
-        AgentType.GEMINI_PRO: """You are a Gemini assistant with strong analytical capabilities.
-Provide comprehensive, well-reasoned responses to queries.
-
-## Available Tools
-The web_search tool is available for current information retrieval:
-- Use for latest data, statistics, or real-time information
-- Parameters: query (required), num_results (1-10), search_type ("general"/"news"/"images")
-- Tool usage is displayed to users in a visual interface
-- Cite and explain your sources when using search results""",
     }
     
     @classmethod
@@ -156,7 +145,7 @@ The web_search tool is available for current information retrieval:
     @classmethod
     def create_main_agent(cls, session_id: Optional[str] = None, tool_registry: Optional[ToolRegistry] = None) -> BaseAgent:
         """
-        Create the main orchestrator agent (Claude 3.5 Sonnet).
+        Create the main orchestrator agent (Claude Sonnet 4.5).
         
         Args:
             session_id: Optional session ID for token tracking

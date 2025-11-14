@@ -55,9 +55,9 @@ class TestAgentFactory:
     
     def test_create_agent_default_prompt(self):
         """Test creating agent with default system prompt."""
-        agent = AgentFactory.create_agent(AgentType.GEMINI_PRO)
+        agent = AgentFactory.create_agent(AgentType.CLAUDE_SUB)
         
-        expected_prompt = AgentFactory.SYSTEM_PROMPTS[AgentType.GEMINI_PRO]
+        expected_prompt = AgentFactory.SYSTEM_PROMPTS[AgentType.CLAUDE_SUB]
         assert agent.config.system_prompt == expected_prompt
     
     def test_create_agent_invalid_type(self):

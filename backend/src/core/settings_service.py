@@ -18,29 +18,13 @@ class SettingsService:
         self.db_manager = db_manager
         self._cached_settings = None
     
-    async def get_anthropic_api_key(self) -> str:
-        """Get Anthropic API key from database or fallback to environment."""
+    async def get_openrouter_api_key(self) -> str:
+        """Get OpenRouter API key from database or fallback to environment."""
         settings = await self._get_settings()
-        key = settings.get("anthropic_api_key", "")
+        key = settings.get("openrouter_api_key", "")
         if key and len(key) > 10:
             return key
-        return env_settings.anthropic_api_key
-    
-    async def get_openai_api_key(self) -> str:
-        """Get OpenAI API key from database or fallback to environment."""
-        settings = await self._get_settings()
-        key = settings.get("openai_api_key", "")
-        if key and len(key) > 10:
-            return key
-        return env_settings.openai_api_key
-    
-    async def get_google_api_key(self) -> str:
-        """Get Google API key from database or fallback to environment."""
-        settings = await self._get_settings()
-        key = settings.get("google_api_key", "")
-        if key and len(key) > 10:
-            return key
-        return env_settings.google_api_key
+        return env_settings.openrouter_api_key
     
     async def get_max_concurrent_agents(self) -> int:
         """Get max concurrent agents setting."""
@@ -68,9 +52,7 @@ class SettingsService:
                 async with self.db_manager.session() as session:
                     app_settings = await SettingsRepository.get_or_create(session)
                     self._cached_settings = {
-                        "anthropic_api_key": app_settings.anthropic_api_key,
-                        "openai_api_key": app_settings.openai_api_key,
-                        "google_api_key": app_settings.google_api_key,
+                        "openrouter_api_key": app_settings.openrouter_api_key,
                         "max_concurrent_agents": app_settings.max_concurrent_agents,
                         "agent_timeout": app_settings.agent_timeout,
                         "embedding_model": app_settings.embedding_model,
@@ -87,9 +69,7 @@ class SettingsService:
         
         # Return default settings from environment
         return {
-            "anthropic_api_key": env_settings.anthropic_api_key,
-            "openai_api_key": env_settings.openai_api_key,
-            "google_api_key": env_settings.google_api_key,
+            "openrouter_api_key": env_settings.openrouter_api_key,
             "max_concurrent_agents": env_settings.max_concurrent_agents,
             "agent_timeout": env_settings.agent_timeout,
             "embedding_model": env_settings.embedding_model,
