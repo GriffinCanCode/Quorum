@@ -75,18 +75,18 @@ MODEL_PRICING_CONFIG: Dict[str, ModelPricing] = {
     ),
     
     # Anthropic Models via OpenRouter
-    "anthropic/claude-sonnet-4-20250514": ModelPricing(
-        model_id="anthropic/claude-sonnet-4-20250514",
-        provider=ModelProvider.OPENROUTER,
-        input_cost_per_1k=0.003,  # $3.00 per 1M tokens
-        output_cost_per_1k=0.015,  # $15.00 per 1M tokens
-        context_window=200_000
-    ),
     "anthropic/claude-3.5-sonnet": ModelPricing(
         model_id="anthropic/claude-3.5-sonnet",
         provider=ModelProvider.OPENROUTER,
         input_cost_per_1k=0.003,  # $3.00 per 1M tokens
         output_cost_per_1k=0.015,  # $15.00 per 1M tokens
+        context_window=200_000
+    ),
+    "anthropic/claude-3-5-haiku": ModelPricing(
+        model_id="anthropic/claude-3-5-haiku",
+        provider=ModelProvider.OPENROUTER,
+        input_cost_per_1k=0.001,  # $1.00 per 1M tokens
+        output_cost_per_1k=0.005,  # $5.00 per 1M tokens
         context_window=200_000
     ),
     "anthropic/claude-3-opus": ModelPricing(
@@ -103,6 +103,22 @@ MODEL_PRICING_CONFIG: Dict[str, ModelPricing] = {
         provider=ModelProvider.OPENROUTER,
         input_cost_per_1k=0.000125,  # $0.125 per 1M tokens
         output_cost_per_1k=0.000375,  # $0.375 per 1M tokens
+        context_window=128_000
+    ),
+    "google/gemini-2.0-flash-exp": ModelPricing(
+        model_id="google/gemini-2.0-flash-exp",
+        provider=ModelProvider.OPENROUTER,
+        input_cost_per_1k=0.0,  # Free during experimental phase
+        output_cost_per_1k=0.0,  # Free during experimental phase
+        context_window=1_000_000
+    ),
+    
+    # X.AI Models via OpenRouter
+    "x-ai/grok-beta": ModelPricing(
+        model_id="x-ai/grok-beta",
+        provider=ModelProvider.OPENROUTER,
+        input_cost_per_1k=0.005,  # $5.00 per 1M tokens (estimated)
+        output_cost_per_1k=0.015,  # $15.00 per 1M tokens (estimated)
         context_window=128_000
     ),
 }

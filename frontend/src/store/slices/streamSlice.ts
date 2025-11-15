@@ -194,6 +194,13 @@ export const createStreamSlice: StateCreator<
           timestamp: new Date().toISOString(),
         });
 
+        // Persist streaming message to sessionStorage now that streaming is done
+        const { streamingMessageId } = get();
+        if (streamingMessageId && state.messages.byId[streamingMessageId]) {
+          // Trigger a final update to persist to sessionStorage
+          state.updateMessage(streamingMessageId, {});
+        }
+
         // Set streaming states to false first
         set({ 
           isStreaming: false,

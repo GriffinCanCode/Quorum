@@ -128,14 +128,20 @@ const MessageBubbleComponent: React.FC<MessageBubbleProps> = ({ message, isLates
   );
 };
 
-// Memoize to prevent unnecessary re-renders when messages haven't changed
+// Memoize to prevent unnecessary re-renders, but not for latest streaming messages
 export const MessageBubble = memo(MessageBubbleComponent, (prevProps, nextProps) => {
-  // Only re-render if message content/id changes or isLatest flag or isProcessing changes
+  // Always re-render the latest message during processing (for smooth streaming)
+  if (nextProps.isLatest && nextProps.isProcessing) {
+    return false; // Always re-render
+  }
+  
+  // For non-streaming messages, only re-render if content/status changed
   return (
     prevProps.message.id === nextProps.message.id &&
     prevProps.message.content === nextProps.message.content &&
     prevProps.isLatest === nextProps.isLatest &&
-    prevProps.isProcessing === nextProps.isProcessing
+    prevProps.isProcessing === nextProps.isProcessing &&
+    prevProps.message.toolUsage === nextProps.message.toolUsage
   );
 });
 

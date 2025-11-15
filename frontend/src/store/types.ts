@@ -120,6 +120,8 @@ export interface Settings {
   enableNotifications: boolean;
   autoShowAgentPanel: boolean;
   agentMode: 'solo' | 'quorum'; // Solo = single agent, Quorum = multi-agent collaboration
+  quorumModels: string[]; // Array of model IDs to use in Quorum mode
+  quorumRounds: number; // Number of conversation rounds (1-5)
   logLevel: 'debug' | 'info' | 'warn' | 'error';
 }
 

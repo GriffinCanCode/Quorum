@@ -96,6 +96,13 @@ function mapToSettings(response: SettingsResponse): Settings {
     enableNotifications: response.enableNotifications,
     autoShowAgentPanel: response.autoShowAgentPanel,
     agentMode: (response as any).agentMode || 'quorum', // Default to quorum mode
+    quorumModels: (response as any).quorumModels || [
+      'anthropic/claude-3-5-haiku',
+      'google/gemini-2.0-flash-exp',
+      'x-ai/grok-beta',
+      'openai/gpt-4o',
+    ], // Default to all models enabled
+    quorumRounds: (response as any).quorumRounds || 2, // Default to 2 rounds
     logLevel: response.logLevel as 'debug' | 'info' | 'warn' | 'error',
   };
 }

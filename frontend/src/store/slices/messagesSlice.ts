@@ -119,8 +119,8 @@ export const createMessagesSlice: StateCreator<
         },
       };
 
-      // Persist to sessionStorage
-      saveMessagesToSession(state.conversationId, updatedMessages);
+      // Don't persist to sessionStorage during streaming (too expensive)
+      // Will be persisted on completion or update
 
       return { messages: updatedMessages };
     });

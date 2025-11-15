@@ -25,6 +25,10 @@ export interface Settings {
   autoShowAgentPanel: boolean;
   agentMode: 'solo' | 'quorum'; // Solo = single agent, Quorum = multi-agent collaboration
   
+  // Quorum Configuration
+  quorumModels: string[]; // Array of model IDs to use in Quorum mode
+  quorumRounds: number; // Number of conversation rounds (1-5)
+  
   // Logging
   logLevel: 'debug' | 'info' | 'warn' | 'error';
 }
@@ -61,6 +65,15 @@ export const defaultSettings: Settings = {
   enableNotifications: true,
   autoShowAgentPanel: true,
   agentMode: 'quorum', // Default to multi-agent collaboration
+  
+  // Quorum Configuration
+  quorumModels: [
+    'anthropic/claude-3-5-haiku',
+    'google/gemini-2.0-flash-exp',
+    'x-ai/grok-beta',
+    'openai/gpt-4o',
+  ], // All models enabled by default
+  quorumRounds: 2, // Default to 2 rounds
   
   // Logging
   logLevel: 'info',
@@ -197,7 +210,7 @@ export const createSettingsSlice: StateCreator<SettingsSlice> = (set, get) => ({
   /**
    * Validate API key format.
    */
-  validateApiKey: (provider: 'anthropic' | 'openai', key: string): boolean => {
+  validateApiKey: (provider: 'openrouter', key: string): boolean => {
     return validateApiKeyFormat(provider, key);
   },
 });

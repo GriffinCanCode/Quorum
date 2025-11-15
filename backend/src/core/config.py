@@ -52,7 +52,7 @@ class Settings(BaseSettings):
     vector_similarity_threshold: float = 0.7
     
     model_config = SettingsConfigDict(
-        env_file=str(Path(__file__).parent / ".env"),
+        env_file=str(Path(__file__).parent.parent.parent / ".env"),
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
@@ -65,7 +65,7 @@ class Settings(BaseSettings):
         super().__init__(**kwargs)
         
         # Load values directly from .env file
-        env_file_path = Path(__file__).parent / ".env"
+        env_file_path = Path(__file__).parent.parent.parent / ".env"
         if env_file_path.exists():
             env_values = dotenv_values(env_file_path)
             

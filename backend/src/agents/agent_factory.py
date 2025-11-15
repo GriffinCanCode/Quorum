@@ -18,11 +18,20 @@ class AgentFactory:
     
     # Map agent types to OpenRouter model identifiers
     # Format: provider/model-name
+    # Updated model names for Quorum delegation (Nov 2024)
     MODEL_MAP = {
-        AgentType.CLAUDE_MAIN: "anthropic/claude-sonnet-4-20250514",  # Claude Sonnet 4 (latest and most capable)
-        AgentType.CLAUDE_SUB: "anthropic/claude-3.5-sonnet",           # Claude 3.5 Sonnet (faster, cost-effective)
-        AgentType.GPT5: "openai/gpt-4o",                               # GPT-4o (latest OpenAI model)
+        AgentType.CLAUDE_MAIN: "anthropic/claude-3.5-sonnet",  # Claude 3.5 Sonnet (main orchestrator)
+        AgentType.CLAUDE_SUB: "anthropic/claude-3-5-haiku",    # Claude 3.5 Haiku (fast, efficient)
+        AgentType.GPT5: "openai/gpt-4o",                       # GPT-4o (balanced reasoning)
     }
+    
+    # Quorum models for multi-agent collaboration (in delegation order)
+    QUORUM_MODELS = [
+        "anthropic/claude-3-5-haiku",      # Claude Haiku 3.5 - Fast analysis
+        "google/gemini-2.0-flash-exp",     # Gemini 2.0 Flash - Multimodal thinking
+        "x-ai/grok-beta",                  # Grok Beta - Real-time insights
+        "openai/gpt-4o",                   # GPT-4o - Creative reasoning
+    ]
     
     # System prompts for different agent types
     SYSTEM_PROMPTS = {

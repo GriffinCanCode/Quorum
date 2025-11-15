@@ -3,6 +3,7 @@
 @import './styles/toolUsage.css';
 @import './styles/agentToolDisplay.css';
 @import './styles/settings.css';
+@import './styles/quorumSettings.css';
 
 @tailwind base;
 @tailwind components;
